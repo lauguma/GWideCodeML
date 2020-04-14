@@ -30,7 +30,6 @@ def get_strain_name(name_string):
     strcode = name_string
     return strcode
 
-
 # Read fasta file and return strain IDs in a list
 def strain_ids(fasta):
     ids = []
@@ -264,8 +263,25 @@ def beb_BS(alt_file):
     else:
         return False
 
+# get beb positions for site models, return a dictionary
+def beb_SM(alt_file):
+    flist = open(alt_file).readlines()
 
+    aas = dict()
+    parsing = False
+    for line in flist:
+        if line.startswith("Bayes Empirical Bayes"):
+            parsing = True
+        elif line.startswith("The grid "):
+            parsing = False
+        if parsing:
+            text = line.strip()
+            if re.match(r"^\d+.*$",text):
+                text_list = [x for x in text.split(" ") if x != ""]
+                if "*" in text_list[2]:
+                    aas[text_list[0]] = text_list[2]
 
+    return aas
 
 
 # Step 1: Create database: multifasta file
@@ -391,22 +407,25 @@ def main():
 
     for gene in significants:
 
-        # branch model: get omega
+        # branch model: get omega and end
         if args.mode == "BM":
             o = getOmega_BM(gene+"_alt.txt")
             if float(o[2]) > 1:
                 print gene
 
 
-        # branch-site model: omega + beb
+        # branch-site model: omega + beb positions
         elif args.mode == "BS":
             o =  getOmega_BS(gene+"_alt.txt")
             sites = beb_BS(gene+"_alt.txt")
             if float(o) > 1:
                 print o,sites
 
+        #site: omega + beb positions
         elif args.mode == "SM":
             print gene
+            positions = beb_SM(gene+"_alt.txt")
+            print positions
 
 
 
