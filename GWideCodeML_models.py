@@ -1,5 +1,14 @@
 #!/usr/bin/python
 
+'''
+GWideCodeML: a Python automatic pipeline for running codeml
+'''
+
+__author__ = "Laura Gutierrez Macias and Christina Toft"
+__version__ = "1.0.1"
+__mantainer__ = "Laura G. Macias"
+__email__ = "laugmacias@gmail.com"
+__status__ = "Development"
 
 import os
 import subprocess
@@ -11,33 +20,26 @@ from Bio import SeqIO
 import re
 
 
-'''
-CODIGO PYTHON GWIDECODEML FINAL CON TODOS LOS MODELOS Y COMENTADO
-'''
-
-
-working_dir = None
 
 # Genes must be annotated with a 4 letters tag followed by strain name + _ + gene name
 # example: SUVAZP964_12G2550
-def get_species_name(name_string):
+def species_name(name_string):
     spcode = name_string[:4]
     return spcode
 
 # Strain name is followed by _
-def get_strain_name(name_string):
+def strain_name(name_string):
     #strcode = name_string.split("_")[0]
     strcode = name_string
     return strcode
 
-# Read fasta file and return strain IDs in a list
+# Read multi-fasta file and return sequence IDs in a list
 def strain_ids(fasta):
     ids = []
     fasta_file = SeqIO.parse(fasta, "fasta")
     for s in fasta_file:
-        ids.append(get_strain_name(s.id.split("_")[0]))
+        ids.append(strain_name(s.id.split("_")[0]))
     fasta_file.close()
-
     return ids
 
 
@@ -49,7 +51,7 @@ def find_strains(str_list, spp_tag):
             found.append(x)
     return found
 
-
+# Transform fasta format to format compatible with paml
 def fasta2phy(msa_input, phy_out):
     input_handle = open(msa_input, "rU")
     output_handle = open(phy_out, "w")
@@ -57,22 +59,21 @@ def fasta2phy(msa_input, phy_out):
     headers = []
     alignments = SeqIO.parse(input_handle, "fasta")
     for a in alignments:
-        if a.id.split("_")[0] != "SCERS288C":
-            headers.append(str(a.id.split("_")[0]))
-            #headers.append(str(a.id))
-            seqs.append(str(a.seq))
+        headers.append(str(a.id))
+        seqs.append(str(a.seq))
     input_handle.close()
-
+    # write first line of the output file
     output_handle.write("  " + str(len(headers)) + "  " + str(len(seqs[0])) + "  " + "\n")
-
+    # write sequences in paml format
     for x in range(0, len(headers)):
         output_handle.write(headers[x] + "  " + seqs[x] + "\n")
     output_handle.close()
 
-
-def getLn(f_in):
-    with open(f_in, "r") as file_in:
-        if os.stat(f_in).st_size > 0:  # if file is not empty
+# Extract Ln Likelihood values from output files created by codeml
+# *** anhadir error handle if file is empty
+def lnl(codeml_in):
+    with open(codeml_in, "r") as file_in:
+        if os.stat(codeml_in).st_size > 0:  # if file is not empty
             for line in file_in:
                 if line.startswith("lnL"):
                     vals = re.findall(r"[-]?\d*\.\d+|\d+", line)
@@ -82,24 +83,22 @@ def getLn(f_in):
                     break
 
         else:
-            lnl = "NA"
+            lnl = None
     return lnl
 
 # Likelihood ratio test with likelihood values from null and alternative hypotheses
-# df: degrees of freedom, default=1
+# df: degrees of freedom, default=1. In site model is df=2
 def lrt(ln_1, ln_2,df=1):
     stats.chisqprob = lambda chisq, df: stats.chi2.sf(chisq, df)
-    if ln_1 and ln_2 != "NA":
+    if ln_1 and ln_2:
         val = 2 * (float(ln_1) - (float(ln_2)))
         p_val = stats.chisqprob(val, df)
     else:
-        p_val = "NA"
+        p_val = None
 
     return p_val
 
-# create 3 dictionaries with model parameters
-
-
+# Create dictionaries containing model parameters
 def modelSelection(select):
     # branch-site model null hypothesis
     bs0 = {
@@ -161,7 +160,7 @@ def modelSelection(select):
 
 
 # replace multiple lines in a text file
-def readAndReplace(f_in,f_out,findlines,replacelines):
+def read_replace(f_in,f_out,findlines,replacelines):
     find_replace = dict(zip(findlines, replacelines))
     try:
         with open(f_in,"r") as data:
@@ -172,12 +171,11 @@ def readAndReplace(f_in,f_out,findlines,replacelines):
                             line = line.replace(key, find_replace[key])
                     new_data.write(line)
     except FileNotFoundError:
-        print "codeml.ctl missing in the working directory"
+        print "Error: codeml.ctl. No such file in the working directory"
 
 
-# Create and edit codeml.ctl file to run codeml
-# Mode: ModelAbranchsite, Nullmodelbranchsite
-def codemlSettings(seq_input, tree_input, out_name, model):
+# Create and edit codeml.ctl file to run codeml according to model selected
+def codeml_settings(seq_input, tree_input, out_name, model):
 
     ctl_find = ["seq_file.phy","tree.nwk","out_name","model = 2","NSsites = 2","fix_omega = 0","omega = .4","ncatG = 3"]
     ctl_replace = [seq_input,tree_input,out_name]
@@ -193,8 +191,6 @@ def codemlSettings(seq_input, tree_input, out_name, model):
 
 # For codeml running, create individual folders on the working dir to run codeml on them, both null and alt
 def runCodeml(ctlFile):
-
-
     os.chdir(os.path.join(working_dir,ctlFile))
     # codeml null hypothesis
     bashCommand = "codeml " + ctlFile + "_null.ctl"
@@ -207,10 +203,8 @@ def runCodeml(ctlFile):
     return output, error
 
 
-
-
 # omega for branch-site models
-def getOmega_BS(alt_file):
+def omega_bs(alt_file):
     with open(alt_file, "r") as alt:
         lines = alt.readlines()
 
@@ -224,7 +218,7 @@ def getOmega_BS(alt_file):
 
 
 # omega for branch model (one omega for the whole coding seq)
-def getOmega_BM(alt_file):
+def omega_bm(alt_file):
     with open(alt_file, "r") as alt:
         lines = alt.readlines()
 
@@ -236,7 +230,7 @@ def getOmega_BM(alt_file):
             return omegas
 
 # get beb positions if there is any and their probabilities
-def beb_BS(alt_file):
+def beb_bs(alt_file):
     f_in = open(alt_file, "r")
     pos_pv = []
     pos = []
@@ -264,7 +258,7 @@ def beb_BS(alt_file):
         return False
 
 # get beb positions for site models, return a dictionary
-def beb_SM(alt_file):
+def beb_sm(alt_file):
     flist = open(alt_file).readlines()
 
     aas = dict()
@@ -297,34 +291,39 @@ def beb_SM(alt_file):
 # Find common ancestor and mark branches
 
 
-# step 3 (empiezo por aqui y despues ire anadiendo las demas partes y llamando a R desde aqui)
 def main():
-    parser = ArgumentParser()
-    parser.add_argument("-p", dest="threads", help="number of threads", type=str)
-    parser.add_argument("-tree", dest="spp_tree", help="species tree in newick format", type=str)
+    parser = ArgumentParser(description="parameters for GWideCodeml performance")
+    parser.add_argument("-p", dest="threads", help="number of threads", type=str,default=1)
     parser.add_argument("-model", dest="mode", help="model testing", type=str, default="BS")
-    parser.add_argument("-work_dir", dest="wd", help="working_dir", type=str)
+    parser.add_argument("-cds", dest="suffix", help="codon alignment suffix", type=str,default=".cd.mafft")
+    parser.add_argument("-branch", dest="mark", help="text file containing species of the branch of interest", type=str)
+    requiredNamed = parser.add_argument_group('required named arguments')
+    requiredNamed.add_argument("-tree", dest="spp_tree", help="species tree in newick format", type=str)
+    requiredNamed.add_argument("-work_dir", dest="wd", help="working_dir", type=str)
+
     args = parser.parse_args()
 
-
+    # define working dir
     global working_dir
     working_dir = os.path.abspath(args.wd) # get absolute path to avoid errors
 
+    # nr. threads define by the user
     t = int(args.threads)
 
-
-    suffix = ".cd.mafft"
+    # list codon alignments in working dir
+    suffix = args.suffix
     fasta_files = [f for f in os.listdir(working_dir) if f.endswith(suffix)]
 
-    # branches to mark
-    #mark_spp = "SCER"  # spp tag to mark (must be 4 letter tag)
-    #mark_spp2 = "SCER"
+    # mark branches if model selected is not site model
+    # ** read file containing branches to mark
+    if args.mode != "SM":
+        mark_spp = "SCER"  # spp tag to mark (must be 4 letter tag)
+        mark_spp2 = "SCER"
 
     '''
-    # read spp tree
-
+    # Parse species tree
     spptree = EvolTree(args.spp_tree)
-    nodes = [] # save all spp contained in spp tree
+    nodes = [] # save in a list all spp contained in spp tree
     for leaf in spptree:
         nodes.append(leaf.name)
 
@@ -364,19 +363,16 @@ def main():
         fasta2phy("../"+fasta, name+".phy")
 
 
-        
-
-    
     # step 4: create codeml.ctl files
         ctl_in = os.path.join(working_dir,"codeml.ctl")
         h0,h1 = modelSelection(args.mode)
         # create ctl file for null hypothesis testing
-        f0,r0 = codemlSettings(name+".phy", name+".tree", name+"_null.txt", h0)
-        readAndReplace(ctl_in, name+"_null.ctl", f0, r0)
+        f0,r0 = codeml_settings(name+".phy", name+".tree", name+"_null.txt", h0)
+        read_replace(ctl_in, name+"_null.ctl", f0, r0)
 
         # create ctl file for alternative hypothesis testing
-        f1, r1 = codemlSettings(name + ".phy", name + ".tree", name + "_alt.txt", h1)
-        readAndReplace(ctl_in, name+"_alt.ctl", f1, r1)
+        f1, r1 = codeml_settings(name + ".phy", name + ".tree", name + "_alt.txt", h1)
+        read_replace(ctl_in, name+"_alt.ctl", f1, r1)
         os.chdir(working_dir)
         alignments.append(name)
 
@@ -409,22 +405,22 @@ def main():
 
         # branch model: get omega and end
         if args.mode == "BM":
-            o = getOmega_BM(gene+"_alt.txt")
+            o = omega_bm(gene+"_alt.txt")
             if float(o[2]) > 1:
                 print gene
 
 
         # branch-site model: omega + beb positions
         elif args.mode == "BS":
-            o =  getOmega_BS(gene+"_alt.txt")
-            sites = beb_BS(gene+"_alt.txt")
+            o =  omega_bs(gene+"_alt.txt")
+            sites = beb_bs(gene+"_alt.txt")
             if float(o) > 1:
                 print o,sites
 
         #site: omega + beb positions
         elif args.mode == "SM":
             print gene
-            positions = beb_SM(gene+"_alt.txt")
+            positions = beb_sm(gene+"_alt.txt")
             print positions
 
 
