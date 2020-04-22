@@ -14,6 +14,7 @@ import os
 import subprocess
 from argparse import ArgumentParser
 import multiprocessing as mp
+import csv
 from scipy import stats
 from ete3 import EvolTree
 from Bio import SeqIO
@@ -33,8 +34,30 @@ def strain_name(name_string):
     strcode = name_string
     return strcode
 
+# Read branches of interest from a text file
+# Return as a dictionary
+def read_branches(txt_in):
+    branches = dict()
+    with open(txt_in, "r") as f_in:
+        freader = csv.reader(f_in,delimiter = ",")
+        for row in freader:
+            if row[1] in branches:
+                branches[row[1]].append(row[0])
+            else:
+                branches[row[1]] = [row[0]]
+
+    return branches
+
+# Parse species tree and return a list with leaves names
+def read_leaves(tree_file):
+    spptree = EvolTree(tree_file)
+    leaves = [] # save in a list all spp contained in spp tree
+    for leaf in spptree:
+        leaves.append(leaf.name)
+    return leaves
+
 # Read multi-fasta file and return sequence IDs in a list
-def strain_ids(fasta):
+def fasta_ids(fasta):
     ids = []
     fasta_file = SeqIO.parse(fasta, "fasta")
     for s in fasta_file:
@@ -59,7 +82,7 @@ def fasta2phy(msa_input, phy_out):
     headers = []
     alignments = SeqIO.parse(input_handle, "fasta")
     for a in alignments:
-        headers.append(str(a.id))
+        headers.append(str(a.id.split("_")[0]))
         seqs.append(str(a.seq))
     input_handle.close()
     # write first line of the output file
@@ -99,7 +122,7 @@ def lrt(ln_1, ln_2,df=1):
     return p_val
 
 # Create dictionaries containing model parameters
-def modelSelection(select):
+def model_selection(select):
     # branch-site model null hypothesis
     bs0 = {
         "model":"2",
@@ -190,15 +213,15 @@ def codeml_settings(seq_input, tree_input, out_name, model):
 
 
 # For codeml running, create individual folders on the working dir to run codeml on them, both null and alt
-def runCodeml(ctlFile):
+def run_codeml(ctlFile):
     os.chdir(os.path.join(working_dir,ctlFile))
     # codeml null hypothesis
-    bashCommand = "codeml " + ctlFile + "_null.ctl"
-    process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    bash_command = "codeml " + ctlFile + "_null.ctl"
+    process = subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output, error = process.communicate()
 
-    bashCommand = "codeml " + ctlFile + "_alt.ctl"
-    process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    bash_command = "codeml " + ctlFile + "_alt.ctl"
+    process = subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output, error = process.communicate()
     return output, error
 
@@ -297,6 +320,7 @@ def main():
     parser.add_argument("-model", dest="mode", help="model testing", type=str, default="BS")
     parser.add_argument("-cds", dest="suffix", help="codon alignment suffix", type=str,default=".cd.mafft")
     parser.add_argument("-branch", dest="mark", help="text file containing species of the branch of interest", type=str)
+    parser.add_argument("-lrt", dest="lrt_stop", action="store_true", default=False)
     requiredNamed = parser.add_argument_group('required named arguments')
     requiredNamed.add_argument("-tree", dest="spp_tree", help="species tree in newick format", type=str)
     requiredNamed.add_argument("-work_dir", dest="wd", help="working_dir", type=str)
@@ -314,58 +338,65 @@ def main():
     suffix = args.suffix
     fasta_files = [f for f in os.listdir(working_dir) if f.endswith(suffix)]
 
-    # mark branches if model selected is not site model
-    # ** read file containing branches to mark
-    if args.mode != "SM":
-        mark_spp = "SCER"  # spp tag to mark (must be 4 letter tag)
-        mark_spp2 = "SCER"
+    # Species tree
+    spptree = os.path.abspath(args.spp_tree)
 
-    '''
-    # Parse species tree
-    spptree = EvolTree(args.spp_tree)
-    nodes = [] # save in a list all spp contained in spp tree
-    for leaf in spptree:
-        nodes.append(leaf.name)
+    # Model selection
+    models = ["BS","BM","SM"]
+    model = str(args.mode)
+    if model not in models:
+        print "Error, uncorrect model selected"
+
+    elif model in ["BM","BS"]:
+        # Read branch marks
+        branch_marks = read_branches(args.mark)
 
     alignments = []
     for fasta in fasta_files:
-        tree = EvolTree(args.spp_tree)  # init tree every time a fasta is open
-        name = fasta.split(".")[0]
-        os.mkdir(name)
-        os.chdir("./" + name)
+        tree = EvolTree(spptree)  # init tree every time a fasta is open
+        nodes = read_leaves(spptree)
+        name = fasta.replace("."+suffix,"")
+        print name
+        os.mkdir(os.path.join(working_dir,name)) # create one folder per gene analyzed
+        os.chdir(os.path.join(working_dir,name))
 
+        #**** AQUI IRIA EL FILTRO NMIN**********
+        genomes = fasta_ids(os.path.join(working_dir,fasta))  # seqs in fasta
 
-
-
-        genomes = strain_ids("../"+fasta)  # seqs in fasta
-
-        # 1: prune tree
+        # Tree prunning
         spp2tree = list(set(nodes).intersection(genomes)) # spp to keep in tree
         tree.prune(spp2tree)
 
-        # 2: mark branches
-        # en -model SM no hay que marcar ramas, solo podar
+        # Mark branches if branch or branch-site models selected
+        # branch site model, one branch each time
+        if model == "BS":
+            mark_spp = branch_marks["1"]
+            ancestor = tree.get_common_ancestor(mark_spp)  # get ancestor of spp to mark branches
+            n1 = str(ancestor.node_id)
+            tree.mark_tree([n1], marks=["#1"])
+            tree.write(outfile=name+".tree") # write tree with only topology
 
+        # branch model allows for multiple branch marks
+        elif model == "BM":
+            nodes = []
+            hashes = []
+            for x in branch_marks.keys():
+                ancestor = tree.get_common_ancestor(branch_marks[x])  # get ancestor of spp to mark branches
+                n1 = str(ancestor.node_id)
+                nodes.append(n1)
+                hashes.append("#"+x)
+            tree.mark_tree(nodes, marks=hashes)
 
-        #branch = find_strains(genomes,mark_spp)
-        #branch2 = find_strains(genomes,mark_spp2)
-        #ancestor = tree.get_common_ancestor(branch)  # get ancestor of spp to mark branches
-        #ancestor2 = tree.get_common_ancestor(branch2)
-        #n1 = str(ancestor.node_id)
-        #n2 = str(ancestor2.node_id)
-        #tree.mark_tree([n1,n2], marks=["#1","#2"])
-        #tree.mark_tree([n1], marks=["#1"])
         tree.write(outfile=name+".tree") # write tree with only topology
         #print tree.write()
 
-
         # File format converter: MSA fasta --> Phylip
-        fasta2phy("../"+fasta, name+".phy")
+        fasta2phy(os.path.join(working_dir,fasta), name+".phy")
 
 
     # step 4: create codeml.ctl files
         ctl_in = os.path.join(working_dir,"codeml.ctl")
-        h0,h1 = modelSelection(args.mode)
+        h0,h1 = model_selection(model)
         # create ctl file for null hypothesis testing
         f0,r0 = codeml_settings(name+".phy", name+".tree", name+"_null.txt", h0)
         read_replace(ctl_in, name+"_null.ctl", f0, r0)
@@ -378,12 +409,19 @@ def main():
 
     print "Control files successfully created, GWidecodeml is ready for codeml performance"
 
-
+    '''
     # step 5 : run codeml in parallel
     pool = mp.Pool(t) # number of threads
-    pool.map(runCodeml, [ctl for ctl in alignments])
+    pool.map(run_codeml, [ctl for ctl in alignments])
     pool.close()
     os.chdir(working_dir)
+    '''
+
+    if args.lrt_stop:
+        print "Codeml finished, output files successfully created. Exiting..."
+        exit()
+
+
     '''
     # Step 6: get likelihood values and calculate p-value by LRT
 
@@ -423,7 +461,7 @@ def main():
             positions = beb_sm(gene+"_alt.txt")
             print positions
 
-
+    '''
 
 if __name__ == "__main__":
     main()
