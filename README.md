@@ -10,6 +10,10 @@ as it is the part for getting the database with the alignments and tree file nec
 1. Database creation: alignment files and species tree.
 2. Testing branch-site model in a set of alignment files (Database), likelihood ratio tests performance on the results obtained and selection of the significant ones and their sites under positive selection (BEB).
 
+
+![GWideCodeML_flowchart](https://github.com/lauguma/GWideCodeML/master/GWideCodeML_models.png)
+
+
 ## Citations
 
 Macías L. G.
