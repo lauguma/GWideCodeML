@@ -11,6 +11,8 @@ as it is the part for getting the database with the alignments and tree file nec
 2. Testing branch-site model in a set of alignment files (Database), likelihood ratio tests performance on the results obtained and selection of the significant ones and their sites under positive selection (BEB).
 
 <p align="center">
+  <img />
+</p>
 ![GWideCodeML_flowchart](https://github.com/lauguma/GWideCodeML/blob/master/GWideCodeML_fd.png)
 
 
