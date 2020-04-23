@@ -12,7 +12,7 @@ as it is the part for getting the database with the alignments and tree file nec
 
 
 <p align="center">
-  <img width="1000" height="1000" src="https://github.com/lauguma/GWideCodeML/blob/master/GWideCodeML_fd.png">
+  <img width="800" height="1000" src="https://github.com/lauguma/GWideCodeML/blob/master/GWideCodeML_fd.png">
 </p>
 
 
