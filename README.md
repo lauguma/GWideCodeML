@@ -4,7 +4,7 @@
 
 GWideCodeML is a pipeline written in Python useful for testing evolutionary hypothesis (branch-site model) at genome-wide level. 
 
-For more information please checkout https://github.com/lauguma/GWideCodeML/wiki
+For more information please visit https://github.com/lauguma/GWideCodeML/wiki
 
 ## Citations
 
