@@ -31,7 +31,7 @@ Our pipeline is supported on other software. If you are using our analysis you s
 
 * v1.0.0 Released on 2020/xx/xx
 
-## License (no idea)
+## License 
 
 ## Requirements
 ### Software requirements
