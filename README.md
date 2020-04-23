@@ -4,20 +4,7 @@
 
 GWideCodeML is a pipeline written in Python useful for testing evolutionary hypothesis (branch-site model) at genome-wide level. 
 
-This pipeline is divided in two main parts. The first part of the pipeline is optional
-as it is the part for getting the database with the alignments and tree file necessary to run GWideCodeML. 
-
-1. Database creation: alignment files and species tree.
-2. Testing branch-site model in a set of alignment files (Database), likelihood ratio tests performance on the results obtained and selection of the significant ones and their sites under positive selection (BEB).
-
-
-<p align="center">
-  <img width="800" height="1000" src="https://github.com/lauguma/GWideCodeML/blob/master/GWideCodeML_fd.png">
-</p>
-
-
-
-
+For more information please checkout https://github.com/lauguma/GWideCodeML/wiki
 
 ## Citations
 
@@ -41,8 +28,9 @@ ete3 ...
 
 
 
-
-
 ## Pipeline description
 
 **Flux diagram**
+<p align="center">
+  <img width="800" height="1000" src="https://github.com/lauguma/GWideCodeML/blob/master/GWideCodeML_fd.png">
+</p>
