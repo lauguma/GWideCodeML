@@ -61,7 +61,6 @@ def fasta_ids(fasta):
     fasta_file.close()
     return ids
 
-
 # Transform fasta format to format compatible with paml
 def fasta2phy(msa_input, phy_out):
     input_handle = open(msa_input, "rU")
@@ -82,7 +81,6 @@ def fasta2phy(msa_input, phy_out):
     output_handle.close()
 
 # Extract Ln Likelihood values from output files created by codeml
-# *** anhadir error handle if file is empty
 def lnl(codeml_in):
     with open(codeml_in, "r") as file_in:
         if os.stat(codeml_in).st_size > 0:  # if file is not empty
@@ -170,7 +168,6 @@ def model_selection(select):
     else:
         print("Error, incorrect model selected")
 
-
 # replace multiple lines in a text file
 def read_replace(f_in,f_out,findlines,replacelines):
     find_replace = dict(zip(findlines, replacelines))
@@ -215,26 +212,20 @@ def run_codeml(ctlFile):
     output, error = process.communicate()
     return output, error
 
-
 # omega for branch-site models
 def omega_bs(alt_file):
     with open(alt_file, "r") as alt:
         lines = alt.readlines()
-
     for line in lines:
         if line.startswith("foreground w"):
             found = line.replace("\n", "")
-
             omegas = re.findall("\d+\.\d+", found)
-
             return float(omegas[-1])
-
 
 # omega for branch model (one omega for the whole coding seq)
 def omega_bm(alt_file):
     with open(alt_file, "r") as alt:
         lines = alt.readlines()
-
     for line in lines:
         if line.startswith("w (dN/dS) for branches:"):
             found = line.replace("\n", "")
@@ -242,36 +233,9 @@ def omega_bm(alt_file):
 
             return omegas
 
-# get beb positions if there is any and their probabilities
-def beb_bs(alt_file):
-    f_in = open(alt_file, "r")
-    pos_pv = []
-    pos = []
-    for line in f_in:
-        if line.startswith("Bayes Empirical Bayes (BEB)"):
-            f_in.next()
-            line = f_in.next()
-            i = True
-            if line != "\n":
-                while i:
-                    pos_pv.append(line)  # add specific lines to matrix
-                    line = f_in.next()
-
-                    if line == "\n":
-                        i = False  # stop reading when there is a \n
-
-    if len(pos_pv) > 0:
-        for x in pos_pv:
-            if '*' in x:
-                pos.append(int(re.search(r'\d+', x).group()))
-
-    if len(pos) > 0:
-        return pos
-    else:
-        return False
 
 # get beb positions for site models, return a dictionary
-def beb_sm(alt_file):
+def beb(alt_file):
     flist = open(alt_file).readlines()
 
     aas = dict()
@@ -286,9 +250,33 @@ def beb_sm(alt_file):
             if re.match(r"^\d+.*$",text):
                 text_list = [x for x in text.split(" ") if x != ""]
                 if "*" in text_list[2]:
-                    aas[text_list[0]] = text_list[2]
-
+                    aas[text_list[0]] = text_list[2].replace("*","")
     return aas
+
+def output_bs(gene_name):
+    beb_dict = beb(gene_name + "_alt.txt")
+
+    for k,v in beb_dict.items():
+        print(k,v)
+
+def output_sm(gene_name):
+    beb_dict = beb(gene_name + "_alt.txt")
+    nr_pos = 0
+    pos = []
+    for k,v in beb_dict.items():
+        if v != None:
+            nr_pos += 1
+            pos.append(k)
+    if len(pos) != 0:
+        line_out = gene_name + "\t" + str(nr_pos)+ "\t" + ";".join(pos)
+        return line_out
+
+def output_bm(gene_name):
+    omegas = omega_bm(gene_name + "_alt.txt")
+    for c, value in enumerate(omegas[1:],1):
+        if float(value) > 1:
+            l_out = gene_name +"\t"+"#"+str(c)
+            return l_out
 
 
 # Main steps of the program
@@ -310,7 +298,8 @@ def main():
     # define working dir
     global working_dir
     working_dir = os.path.abspath(args.wd) # get absolute path to avoid errors
-
+    model = str(args.mode)
+    '''
     # nr. threads define by the user
     t = int(args.threads)
 
@@ -331,7 +320,7 @@ def main():
         # Read branch marks
         branch_marks = read_branches(args.mark)
 
-
+    
     # Filter fasta files omin and cmin indicated
     remove_fasta = []
     if args.min_out:
@@ -407,7 +396,7 @@ def main():
 
     print("Control files successfully created, GWidecodeml is ready for codeml performance")
 
-    '''
+
     
     # step 5 : run codeml in parallel
     pool = mp.Pool(t) # number of threads
@@ -417,52 +406,58 @@ def main():
     
 
     if args.lrt_stop:
-        print("Codeml finished, output files successfully created. Exiting...")
+        print("Codeml has finished, output files successfully created. Exiting...")
         exit()
     
     else:
         print("Codeml has finished, output files successfully created. Running LRTs...")
 
-    
-    # Step 6: get likelihood values and calculate p-value by LRT
-
+    '''
+    # Step 6: LRTs, keep genes with p-value < 0.05
     alt_results = [f for f in os.listdir(working_dir) if f.endswith("_alt.txt")]
     significants = []
-
     for f in alt_results:
         gene_name = f.split("_")[0]
-        ln_alt = getLn(f)
-        ln_null = getLn(gene_name + "_null.txt")
-        p_val = lrt(ln_alt, ln_null)
+        ln_alt = lnl(f)
+        ln_null = lnl(gene_name + "_null.txt")
+        if model in ["BS","BM"]:
+            p_val = lrt(ln_alt, ln_null)
+        elif model == "SM":
+            p_val = lrt(ln_alt,ln_null,2) # in site-model, LRT has 2 degrees of freedom
         if p_val < 0.05:
             significants.append(gene_name)
 
 
     # Step 7: get omega/beb values for those genes with significant values:
+    out_file = open("results_"+model+".tsv","w")
 
-    for gene in significants:
+    # branch model: get omega and end
+    if model == "BM":
+        out_file.write("Gene_name" + "\t" + "Branch_label" + "\n")
+        for gene in significants:
+            l_out = output_bm(gene)
+            if l_out:
+                out_file.write(l_out + "\n")
 
-        # branch model: get omega and end
-        if args.mode == "BM":
-            o = omega_bm(gene+"_alt.txt")
-            if float(o[2]) > 1:
-                print(gene)
 
-
-        # branch-site model: omega + beb positions
-        elif args.mode == "BS":
+    # branch-site model: omega + beb positions
+    elif args.mode == "BS":
+        out_file.write("Gene_name" + "\t" + "Nr_positions" + "\t" + "AA Positions" + "\n")
+        for gene in significants:
             o =  omega_bs(gene+"_alt.txt")
-            sites = beb_bs(gene+"_alt.txt")
             if float(o) > 1:
-                print(o,sites)
+                print(gene)
+                output_bs(gene)
 
-        #site: omega + beb positions
-        elif args.mode == "SM":
-            print(gene)
-            positions = beb_sm(gene+"_alt.txt")
-            print(positions)
+    # site model: beb positions under PS
+    elif args.mode == "SM":
+        out_file.write("Gene_name" + "\t" + "Nr_positions" + "\t" + "AA Positions" + "\n")
+        for gene in significants:
+            l_out = output_sm(gene, gene+"_alt.txt")
+            if l_out:
+                out_file.write(l_out+"\n")
 
-    '''
+    out_file.close()
 
 if __name__ == "__main__":
     main()
