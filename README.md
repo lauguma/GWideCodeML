@@ -6,13 +6,6 @@ GWideCodeML is a pipeline written in Python useful for testing evolutionary hypo
 
 For more information please visit https://github.com/lauguma/GWideCodeML/wiki
 
-## Citations
-
-Macías L. G.
-
-Our pipeline is supported on other software. If you are using our analysis you should also cite:
-
-...
 
 ## Release history
 
@@ -21,16 +14,21 @@ Our pipeline is supported on other software. If you are using our analysis you s
 
 ## Requirements
 
-Python 3
+GWideCodeML is written in Python 3.
 
 
-### Software requirements
+### Python libraries 
 
-biopython
-scipy
-ete3 ...
+Biopython
+Scipy
+ete3
 
+Recommended easy installation via pip install.
 
+### Software 
+
+PAML (Phylogenetics Analysis by Maximum Likelihood). http://abacus.gene.ucl.ac.uk/software/paml.html
+This package contains different programs. It will be necessary to have codeml executable file in the working directory or export the path containing this executable file to the environment.
 
 ## Pipeline description
 
