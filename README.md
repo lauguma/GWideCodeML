@@ -19,28 +19,28 @@ GWideCodeML is written in Python 3.
 
 ### Python libraries 
 
-Biopython
-Scipy
-ete3
+Biopython  
+Scipy  
+ete3  
 
 Easy installation recommended via pip install.
 
 ### Software 
 
-PAML (Phylogenetics Analysis by Maximum Likelihood). http://abacus.gene.ucl.ac.uk/software/paml.html
+PAML (Phylogenetics Analysis by Maximum Likelihood). http://abacus.gene.ucl.ac.uk/software/paml.html  
 This package contains different programs. It will be necessary to have codeml executable file in the working directory or export the path containing this executable file to the environment.
 
 ## Citations
-Macías L. G.
+Macías L. G.  
 
 Our pipeline uses third-party software. If you are using GWideCodeML, please also cite:
 
 Yang, Z. "PAML 4: a program package for phylogenetic analysis by maximum likelihood."
-Mol Biol Evol (2017) doi: 10.1093/molbev/msm088
+Mol Biol Evol (2017) doi: 10.1093/molbev/msm088  
 
 Huerta-Cepas, J., Serra, F and Bork, P. "ETE 3: Reconstruction,
 analysis and visualization of phylogenomic data."  Mol Biol Evol (2016) doi:
-10.1093/molbev/msw046
+10.1093/molbev/msw046  
 
 ## Pipeline description
 
