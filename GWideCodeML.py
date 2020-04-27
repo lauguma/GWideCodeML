@@ -45,9 +45,9 @@ def count_dict_values(list_in,dict_in,key):
 
 # Parse species tree and return a list with leaves names
 def read_leaves(tree_file):
-    spptree = EvolTree(tree_file)
+    tree_handle = EvolTree(tree_file)
     leaves = [] # save in a list all spp contained in spp tree
-    for leaf in spptree:
+    for leaf in tree_handle:
         leaves.append(leaf.name)
     return leaves
 
@@ -165,8 +165,6 @@ def model_selection(select):
         return bm0,bm1
     elif select == "SM":
         return sm0,sm1
-    else:
-        print("Error, incorrect model selected")
 
 # replace multiple lines in a text file
 def read_replace(f_in,f_out,findlines,replacelines):
@@ -187,7 +185,8 @@ def read_replace(f_in,f_out,findlines,replacelines):
 # Create and edit codeml.ctl file to run codeml according to model selected
 def codeml_settings(seq_input, tree_input, out_name, model):
 
-    ctl_find = ["seq_file.phy","tree.nwk","out_name","model = 2","NSsites = 2","fix_omega = 0","omega = .4","ncatG = 3"]
+    ctl_find = ["seq_file.phy","tree.nwk","out_name","model = 2",\
+                "NSsites = 2","fix_omega = 0","omega = .4","ncatG = 3"]
     ctl_replace = [seq_input,tree_input,out_name]
 
     ctl_replace.append("model = " + model["model"])
@@ -199,14 +198,15 @@ def codeml_settings(seq_input, tree_input, out_name, model):
     return ctl_find,ctl_replace
 
 
-# For codeml running, create individual folders on the working dir to run codeml on them, both null and alt
+# For codeml running, create individual folders
+# located at the working dir to run codeml on them, both null and alt
 def run_codeml(ctlFile):
     os.chdir(os.path.join(working_dir,ctlFile))
     # codeml null hypothesis
     bash_command = "codeml " + ctlFile + "_null.ctl"
     process = subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output, error = process.communicate()
-
+    # codeml alt hypothesis
     bash_command = "codeml " + ctlFile + "_alt.ctl"
     process = subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output, error = process.communicate()
@@ -250,14 +250,17 @@ def beb(alt_file):
             if re.match(r"^\d+.*$",text):
                 text_list = [x for x in text.split(" ") if x != ""]
                 if "*" in text_list[2]:
-                    aas[text_list[0]] = text_list[2].replace("*","")
+                    aas[text_list[0]] = text_list[1]
     return aas
 
 def output_bs(gene_name):
     beb_dict = beb(gene_name + "_alt.txt")
-
+    nr_pos = 0
+    pos = []
     for k,v in beb_dict.items():
-        print(k,v)
+        if v != None:
+            l_out = gene_name + "\t" + k + "\t" + v
+            return l_out
 
 def output_sm(gene_name):
     beb_dict = beb(gene_name + "_alt.txt")
@@ -275,53 +278,71 @@ def output_bm(gene_name):
     omegas = omega_bm(gene_name + "_alt.txt")
     for c, value in enumerate(omegas[1:],1):
         if float(value) > 1:
-            l_out = gene_name +"\t"+"#"+str(c)
-            return l_out
+            line_out = gene_name +"\t"+"#"+str(c)
+            return line_out
 
 
 # Main steps of the program
 def main():
-    parser = ArgumentParser(description="parameters for GWideCodeml performance")
+    parser = ArgumentParser(description="Parameters for GWideCodeml performance")
+    requiredNamed = parser.add_argument_group('required arguments')
+    requiredNamed.add_argument("-tree", dest="spp_tree", help="species tree in newick format", type=str)
+    requiredNamed.add_argument("-work_dir", dest="wd", help="working_dir", type=str)
+    requiredNamed.add_argument("-cds", dest="suffix", help="codon alignment files extension", type=str, default=".fa")
     parser.add_argument("-p", dest="threads", help="number of threads", type=str,default=1)
     parser.add_argument("-model", dest="mode", help="model testing", type=str, default="BS")
-    parser.add_argument("-cds", dest="suffix", help="codon alignment suffix", type=str,default=".cd.mafft")
     parser.add_argument("-branch", dest="mark", help="text file containing species of the branch of interest", type=str)
     parser.add_argument("-no_lrt", dest="lrt_stop", action="store_true", default=False)
     parser.add_argument("-omin", dest="min_out", help="min nr. of outgroup spp", default=False)
     parser.add_argument("-cmin", dest="min_clade", help="min nr. of clade spp", default=False)
-    requiredNamed = parser.add_argument_group('required named arguments')
-    requiredNamed.add_argument("-tree", dest="spp_tree", help="species tree in newick format", type=str)
-    requiredNamed.add_argument("-work_dir", dest="wd", help="working_dir", type=str)
 
     args = parser.parse_args()
 
+    # Trying required parameters
+
     # define working dir
     global working_dir
-    working_dir = os.path.abspath(args.wd) # get absolute path to avoid errors
-    model = str(args.mode)
-    '''
-    # nr. threads define by the user
-    t = int(args.threads)
+    working_dir = os.path.abspath(args.wd)
 
     # list codon alignments in working dir
     suffix = args.suffix
     fasta_files = [f for f in os.listdir(working_dir) if f.endswith(suffix)]
+    if len(fasta_files) == 0:
+        print("Error, no files found with the provided extension. Exiting...")
+        exit()
 
     # Species tree
+    if args.spp_tree == None:
+        print("Please, provide a tree in NEWICK format. Exiting...")
+        exit()
     spptree = os.path.abspath(args.spp_tree)
+
+    # Setting optional arguments:
+
+    # nr. threads define by the user
+    t = int(args.threads)
 
     # Model selection
     models = ["BS","BM","SM"]
     model = str(args.mode)
     if model not in models:
-        print("Error, uncorrect model selected")
+        print("Error, uncorrect model selection. Exiting...")
+        exit()
+
 
     elif model in ["BM","BS"]:
         # Read branch marks
-        branch_marks = read_branches(args.mark)
+        if args.mark == None:
+            print("If you choose branch or branch-site model, " \
+                  "a file specifying branch labels must be provided using -branch option. " \
+                  "Please, check the manual to provide a file in the right format.\n" \
+                  "Exiting... ")
+            exit()
+        else:
+            branch_marks = read_branches(args.mark)
 
     
-    # Filter fasta files omin and cmin indicated
+    # Filter fasta files if omin and cmin provided
     remove_fasta = []
     if args.min_out:
         for s in fasta_files:
@@ -342,7 +363,7 @@ def main():
     # Filter fastas if necessary
     fasta_list = [x for x in fasta_files if x not in remove_fasta]
 
-    # Prepare files that passed filters for codeml performance
+    # Prepare files that have passed filters for codeml performance
     for fasta in fasta_list:
         tree = EvolTree(spptree)  # init tree every time a fasta is open
         nodes = read_leaves(spptree)
@@ -403,16 +424,14 @@ def main():
     pool.map(run_codeml, [ctl for ctl in alignments])
     pool.close()
     os.chdir(working_dir)
-    
 
     if args.lrt_stop:
         print("Codeml has finished, output files successfully created. Exiting...")
         exit()
-    
     else:
         print("Codeml has finished, output files successfully created. Running LRTs...")
 
-    '''
+
     # Step 6: LRTs, keep genes with p-value < 0.05
     alt_results = [f for f in os.listdir(working_dir) if f.endswith("_alt.txt")]
     significants = []
@@ -428,8 +447,10 @@ def main():
             significants.append(gene_name)
 
 
+
     # Step 7: get omega/beb values for those genes with significant values:
-    out_file = open("results_"+model+".tsv","w")
+    out_file_name = "results_"+model+".tsv"
+    out_file = open(out_file_name,"w")
 
     # branch model: get omega and end
     if model == "BM":
@@ -439,25 +460,28 @@ def main():
             if l_out:
                 out_file.write(l_out + "\n")
 
-
     # branch-site model: omega + beb positions
     elif args.mode == "BS":
-        out_file.write("Gene_name" + "\t" + "Nr_positions" + "\t" + "AA Positions" + "\n")
+        out_file.write("Gene_name" + "\t" + "AA_position" + "\t" + "AA" + "\n")
         for gene in significants:
             o =  omega_bs(gene+"_alt.txt")
             if float(o) > 1:
-                print(gene)
-                output_bs(gene)
+                l_out = output_bs(gene)
+                if l_out:
+                    out_file.write(l_out+"\n")
+
 
     # site model: beb positions under PS
     elif args.mode == "SM":
         out_file.write("Gene_name" + "\t" + "Nr_positions" + "\t" + "AA Positions" + "\n")
         for gene in significants:
-            l_out = output_sm(gene, gene+"_alt.txt")
+            l_out = output_sm(gene)
             if l_out:
                 out_file.write(l_out+"\n")
 
     out_file.close()
+
+    print("GWideCodeML succesfully run, please check {} results file.".format(out_file_name))
 
 if __name__ == "__main__":
     main()
