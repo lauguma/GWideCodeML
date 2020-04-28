@@ -46,5 +46,5 @@ analysis and visualization of phylogenomic data."  Mol Biol Evol (2016) doi:
 
 **Flux diagram**
 <p align="center">
-  <img width="800" height="1000" src="https://github.com/lauguma/GWideCodeML/blob/master/GWideCodeML_fd.png">
+  <img width="800" height="1000" src="https://github.com/lauguma/GWideCodeML/blob/master/GWideCodeML_flux_diagram.png">
 </p>
