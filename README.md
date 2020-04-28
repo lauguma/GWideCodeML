@@ -31,9 +31,9 @@ PAML (Phylogenetics Analysis by Maximum Likelihood). http://abacus.gene.ucl.ac.u
 This package contains different programs. It will be necessary to have codeml executable file in the working directory or export the path containing this executable file to the environment.
 
 ## Citations
-Macías L. G.  
+Macías L. G., Barrio E. and Toft. C. GWideCodeML: an automatic pipeline for testing evolutionary hypothesis at the genome-wide level (unpublished).
 
-Our pipeline uses third-party software. If you are using GWideCodeML, please also cite:
+Our pipeline uses third-party software. If you are using GWideCodeML, please, also cite:
 
 Yang, Z. "PAML 4: a program package for phylogenetic analysis by maximum likelihood."
 Mol Biol Evol (2017) doi: 10.1093/molbev/msm088  
