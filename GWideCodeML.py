@@ -8,7 +8,7 @@ __author__ = "Laura Gutierrez Macias and Christina Toft"
 __version__ = "1.0.1"
 __mantainer__ = "Laura G. Macias"
 __email__ = "laugmacias@gmail.com"
-__status__ = "Development"
+
 
 import os
 import subprocess
@@ -123,7 +123,7 @@ def model_selection(select):
         "model":"2",
         "NSsites":"2",
         "fix_omega":"0",
-        "omega":"1.4",
+        "omega":"2",
         "ncatG":"3"
     }
     # branch model null hypothesis
@@ -131,7 +131,7 @@ def model_selection(select):
         "model":"0",
         "NSsites":"0",
         "fix_omega":"0",
-        "omega":"1.4",
+        "omega":"2",
         "ncatG":"3"
     }
     # branch model alt hypothesis
@@ -139,7 +139,7 @@ def model_selection(select):
         "model":"2",
         "NSsites":"0",
         "fix_omega":"0",
-        "omega":"1.4",
+        "omega":"2",
         "ncatG":"3"
     }
     # site model M1a null hypothesis
@@ -147,7 +147,7 @@ def model_selection(select):
         "model":"0",
         "NSsites":"1",
         "fix_omega":"0",
-        "omega":"1.4",
+        "omega":"2",
         "ncatG":"3"
     }
     # site model M2a alt hypothesis
@@ -155,7 +155,7 @@ def model_selection(select):
         "model":"0",
         "NSsites":"2",
         "fix_omega":"0",
-        "omega":"1.4",
+        "omega":"2",
         "ncatG":"3"
     }
 
@@ -178,11 +178,11 @@ def read_replace(f_in,f_out,findlines,replacelines):
                             line = line.replace(key, find_replace[key])
                     new_data.write(line)
     except FileNotFoundError:
-        print("Error: codeml.ctl. No such file in the working directory")
+        print("Error: gwcodeml.ctl. No such file in the working directory")
         exit()
 
 
-# Create and edit codeml.ctl file to run codeml according to model selected
+# Create and edit control files to run codeml according to model selected
 def codeml_settings(seq_input, tree_input, out_name, model):
 
     ctl_find = ["seq_file.phy","tree.nwk","out_name","model = 2",\
@@ -403,8 +403,8 @@ def main():
         fasta2phy(os.path.join(working_dir,fasta), name+".phy")
 
 
-    # step 4: create codeml.ctl files
-        ctl_in = os.path.join(working_dir,"codeml.ctl")
+    # step 4: create .ctl files
+        ctl_in = os.path.join(working_dir,"gwcodeml.ctl")
         h0,h1 = model_selection(model)
         # create ctl file for null hypothesis testing
         f0,r0 = codeml_settings(name+".phy", name+".tree", name+"_null.txt", h0)
