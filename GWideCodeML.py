@@ -362,7 +362,8 @@ def main():
 
     # Filter fastas if necessary
     fasta_list = [x for x in fasta_files if x not in remove_fasta]
-
+    
+    gene_names = []
     # Prepare files that have passed filters for codeml performance
     gene_names = []
     for fasta in fasta_list:
