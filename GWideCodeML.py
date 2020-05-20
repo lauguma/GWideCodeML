@@ -364,6 +364,7 @@ def main():
     fasta_list = [x for x in fasta_files if x not in remove_fasta]
 
     # Prepare files that have passed filters for codeml performance
+    gene_names = []
     for fasta in fasta_list:
         tree = EvolTree(spptree)  # init tree every time a fasta is open
         nodes = read_leaves(spptree)
@@ -372,6 +373,7 @@ def main():
         os.mkdir(os.path.join(working_dir,name)) # create one folder per gene analyzed
         os.chdir(os.path.join(working_dir,name))
         genomes = fasta_ids(os.path.join(working_dir, fasta)) # genomes contained in fasta file
+        gene_names.append(name)
 
         # Tree prunning
         spp2tree = list(set(nodes).intersection(genomes)) # spp to keep in tree
@@ -421,7 +423,7 @@ def main():
     
     # step 5 : run codeml in parallel
     pool = mp.Pool(t) # number of threads
-    pool.map(run_codeml, [ctl for ctl in alignments])
+    pool.map(run_codeml, [ctl for ctl in gene_names])
     pool.close()
     os.chdir(working_dir)
 
