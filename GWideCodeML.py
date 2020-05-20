@@ -5,7 +5,7 @@ GWideCodeML: a Python automatic pipeline for running codeml
 '''
 
 __author__ = "Laura Gutierrez Macias and Christina Toft"
-__version__ = "1.0.1"
+__version__ = "develop"
 __mantainer__ = "Laura G. Macias"
 __email__ = "laugmacias@gmail.com"
 
