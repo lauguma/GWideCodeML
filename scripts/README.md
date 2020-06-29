@@ -1,5 +1,6 @@
 ## Useful scripts for your dataset
 
+This folder contains useful scripts for creating input files for running GWideCodeML.
 
 ### fsa2msa.py
 
