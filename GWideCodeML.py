@@ -11,6 +11,7 @@ __email__ = "laugmacias@gmail.com"
 
 
 import os
+import shutil
 import subprocess
 from argparse import ArgumentParser
 import multiprocessing as mp
@@ -63,7 +64,7 @@ def fasta_ids(fasta):
 
 # Transform fasta format to format compatible with paml
 def fasta2phy(msa_input, phy_out):
-    input_handle = open(msa_input, "rU")
+    input_handle = open(msa_input, "r")
     output_handle = open(phy_out, "w")
     alignments = SeqIO.parse(input_handle, "fasta")
     msa_seqs = dict()
@@ -230,7 +231,6 @@ def omega_bm(alt_file):
         if line.startswith("w (dN/dS) for branches:"):
             found = line.replace("\n", "")
             omegas = re.findall("\d+\.\d+", found)
-
             return omegas
 
 
@@ -293,6 +293,7 @@ def main():
     parser.add_argument("-model", dest="mode", help="model testing", type=str, default="BS")
     parser.add_argument("-branch", dest="mark", help="text file containing species of the branch of interest", type=str)
     parser.add_argument("-no_lrt", dest="lrt_stop", action="store_true", default=False)
+    parser.add_argument("-dnds", dest="get_dnds", action="store_true", default=False)
     parser.add_argument("-omin", dest="min_out", help="min nr. of outgroup spp", default=False)
     parser.add_argument("-cmin", dest="min_clade", help="min nr. of clade spp", default=False)
 
@@ -363,7 +364,6 @@ def main():
     # Filter fastas if necessary
     fasta_list = [x for x in fasta_files if x not in remove_fasta]
     
-    gene_names = []
     # Prepare files that have passed filters for codeml performance
     gene_names = []
     for fasta in fasta_list:
@@ -371,6 +371,10 @@ def main():
         nodes = read_leaves(spptree)
         name = fasta.replace(suffix,"")
         #print(name)
+        # create path and change dir
+        dirpath = os.path.join(working_dir,name)
+        if os.path.exists(dirpath) and os.path.isdir(dirpath): # if path exists, delete it
+            shutil.rmtree(dirpath)
         os.mkdir(os.path.join(working_dir,name)) # create one folder per gene analyzed
         os.chdir(os.path.join(working_dir,name))
         genomes = fasta_ids(os.path.join(working_dir, fasta)) # genomes contained in fasta file
@@ -379,26 +383,20 @@ def main():
         # Tree prunning
         spp2tree = list(set(nodes).intersection(genomes)) # spp to keep in tree
         tree.prune(spp2tree)
+
         # Mark branches if branch or branch-site models selected
         # branch site model, one branch each time
-        if model == "BS":
-            mark_spp = branch_marks["1"]
-            ancestor = tree.get_common_ancestor(mark_spp)  # get ancestor of spp to mark branches
-            n1 = str(ancestor.node_id)
-            tree.mark_tree([n1], marks=["#1"])
+        if model in ["BM","BS"]:
+            mark_spp = list(set(branch_marks["1"]).intersection(genomes))
+            if len(mark_spp) > 1:
+                ancestor = tree.get_common_ancestor(mark_spp)  # get ancestor of spp to mark branches
+                nx = str(ancestor.node_id)
+                tree.mark_tree([nx], marks=["#1"])
+            else:
+                n1 = str(mark_spp[0].node_id)
+                tree.mark_tree([nx], marks=["#1"])
+                print(n1)
             tree.write(outfile=name+".tree") # write tree with only topology
-
-        # branch model allows for multiple branch marks
-        elif model == "BM":
-            nodes = []
-            hashes = []
-            for x in branch_marks.keys():
-                if x != "0": # if not outgroup
-                    ancestor = tree.get_common_ancestor(branch_marks[x])  # get ancestor of spp to mark branches
-                    n1 = str(ancestor.node_id)
-                    nodes.append(n1)
-                    hashes.append("#"+x)
-            tree.mark_tree(nodes, marks=hashes)
 
         tree.write(outfile=name+".tree") # write tree with only topology
 
@@ -456,7 +454,7 @@ def main():
     out_file = open(out_file_name,"w")
 
     # branch model: get omega and end
-    if model == "BM":
+    if args.mode == "BM":
         out_file.write("Gene_name" + "\t" + "Branch_label" + "\n")
         for gene in significants:
             l_out = output_bm(gene)
@@ -483,6 +481,31 @@ def main():
                 out_file.write(l_out+"\n")
 
     out_file.close()
+
+    # if -dnds option, an extra file is created with omega values for all tested genes
+    if args.get_dnds and args.mode in ["BM","BS"]:
+        omega_file_name = "dnds_" + model + ".tsv"
+        omega_file = open(omega_file_name, "w")
+        tsvwriter = csv.writer(omega_file, delimiter="\t")
+        if args.mode == "BM":
+            col_names = ["Gene","#0","#1"]
+            tsvwriter.writerow(col_names)
+            for gene in gene_names:
+                dnds_values = omega_bm(os.path.join(working_dir,gene,gene+"_alt.txt"))
+                l_out = [gene] + dnds_values
+                tsvwriter.writerow(l_out)
+        elif args.mode == "BS":
+            col_names = ["Gene", "#1"]
+            tsvwriter.writerow(col_names)
+            for gene in gene_names:
+                dnds_branch = omega_bs(os.path.join(working_dir,gene,gene+"_alt.txt"))
+                l_out = [gene, dnds_branch]
+                tsvwriter.writerow(l_out)
+
+
+        omega_file.close()
+
+
 
     print("GWideCodeML succesfully run, please check {} results file.".format(out_file_name))
 
