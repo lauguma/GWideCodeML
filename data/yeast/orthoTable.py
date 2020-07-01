@@ -67,18 +67,15 @@ def listReplace(nlist,element,replacement):
 
 def main():
 
-
-
     # INPUTs
     fasta_db = "DB_CDS.fna"
-    fasta_db_out = "DB_ALL.fna"
+    fasta_db_out = "DB_new.fna"
     pillar = pd.read_csv("PILLAR.tab", delimiter="\t")
 
     ## 1
     # Create fasta database: ygob database + fasta.cds.fna
     path = os.getcwd() # working directory
-
-    suffix = ".cds.fna"
+    suffix = ".cds.fna" # suffix of the multifasta files containing annotated genomes
     fasta_files = [f for f in os.listdir(path) if f.endswith(suffix)]
     db_out = open(fasta_db_out,"w") # iniciar db para que empiece en blanco
     db_out.close()
@@ -99,8 +96,7 @@ def main():
     pillar.fillna(0, inplace=True)
 
 
-
-    # Separar tablas pre-post duplicacion y despues pegar
+    # Separate pre and post-WGD species
     pillar1 = pillar.iloc[:,0:20]
     pillar2 = pillar.iloc[:,11:]
 
@@ -116,8 +112,7 @@ def main():
     mytab = mytab[(mytab != 0).any(1)]
 
 
-    # ortologos seran anadidos por ortologo con s288c
-    # anotacion sistematica
+    # gene orthologs will be added by systematic gene name ortholog to Scerevisiae S288c
     s288c = list(filter(lambda num: num != 0, mytab["SCERREF"].tolist()))
 
     d = dict() # dict with key strain name and list of genes as values
@@ -132,52 +127,29 @@ def main():
 
         # iterate over gene list of every genome
         for gene in v:
-            #print gene
+            #print(gene)
             ortho = gene.split("_")[1] # ortho value to find gene in table
-            if ortho in s288c: # quitar esto y poner solo genes con ortologos con s288c, no tiene mucho sentido
+            if ortho in s288c:
                 row = int(mytab[mytab['SCERREF'] == ortho].index[0]) # get row of ortho gene
                 mytab.loc[row, k] = gene
 
-    '''
-    # mytab is complete with new genomes, now filter
-
-    # iterate over rows:
-    rows = [] # indexes of rows to keep in data frame
-
-    ## 3 Este paso se hara dentro del pipeline GWideCodeml
-    # Subset data by nr of outgroups and nr of genes of spp of interest
-    for i in range(0, len(mytab.index)):
-        # Step 1: filter by nr of outgroups
-        x = mytab[preWGD].iloc[i].tolist()
-        y = mytab[spp1].iloc[i].tolist()
-        if y.count(0) <= 1:
-            if x.count(0) <= 2:
-                rows.append(i)
-    
-    subdata = mytab.iloc[rows,:]
-    subdata.to_csv("prueba.txt",index=False,sep = "\t",encoding='utf-8') # para comprobar
-    '''
-    # guardar tabla completa con orthologs anadidos
+    # save table with the new orthologs added
     mytab.to_csv("ortho_table.txt", index=False, sep="\t", encoding='utf-8')  # para comprobar
 
-    # Cargar base de datos en memoria
+    # Read table: uncomment previous section to start from this part
     subdata = pd.read_csv("ortho_table.txt",sep = "\t",encoding='utf-8')
-
-    cds_db = fasta2dict("DB_ALL.fna")
-
-
-
+    cds_db = fasta2dict("DB_new.fna")
 
     ## 4
-    # Create gene multi-fasta files
+    # Create fasta file gene by gene
     for i in range(len(subdata.index)):
         gname = subdata.loc[i, "SCERREF"]
         r = subdata.iloc[i].tolist()
         n = listReplace(r,gname,"SCERREF_"+gname)
         dict2ffn(cds_db,n,gname)
 
-
-
+    # Divide gene fasta file in 2 sub-folders:
+    # spp_tree/ orthologs shared among all species, those genes can be used for generate the species tree
     os.mkdir("spp_tree")
     os.mkdir("other_genes")
     allspp = subdata[(subdata != "0").all(1)]
@@ -186,7 +158,7 @@ def main():
         ffn_file = ffn+".ffn"
         shutil.move(ffn_file,"./spp_tree/"+ffn_file)
 
-    # mover el resto a otra carpeta
+    # other_genes/ differential orthologs among different species
     for ffn in [f for f in os.listdir(os.getcwd()) if f.endswith(".ffn")]:
         shutil.move(ffn, "./other_genes/" + ffn)
 
