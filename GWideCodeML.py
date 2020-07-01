@@ -26,7 +26,7 @@ import re
 # Return as a dictionary
 def read_branches(txt_in):
     branches = dict()
-    with open(txt_in, "r") as f_in:
+    with open(txt_in, "r",newline=None) as f_in:
         freader = csv.reader(f_in,delimiter = ",")
         for row in freader:
             if row[1] in branches:
@@ -56,15 +56,14 @@ def read_leaves(tree_file):
 # Format spptag_geneid. Get only spp tag
 def fasta_ids(fasta):
     ids = []
-    fasta_file = SeqIO.parse(fasta, "fasta")
-    for s in fasta_file:
-        ids.append(s.id.split("_")[0])
-    fasta_file.close()
+    with open(fasta, "r",newline=None) as handle:
+        for record in SeqIO.parse(handle, "fasta"):
+            ids.append(record.id.split("_")[0])
     return ids
 
 # Transform fasta format to format compatible with paml
 def fasta2phy(msa_input, phy_out):
-    input_handle = open(msa_input, "r")
+    input_handle = open(msa_input, "r",newline=None)
     output_handle = open(phy_out, "w")
     alignments = SeqIO.parse(input_handle, "fasta")
     msa_seqs = dict()
@@ -83,7 +82,7 @@ def fasta2phy(msa_input, phy_out):
 
 # Extract Ln Likelihood values from output files created by codeml
 def lnl(codeml_in):
-    with open(codeml_in, "r") as file_in:
+    with open(codeml_in, "r",newline=None) as file_in:
         if os.stat(codeml_in).st_size > 0:  # if file is not empty
             for line in file_in:
                 if line.startswith("lnL"):
@@ -171,7 +170,7 @@ def model_selection(select):
 def read_replace(f_in,f_out,findlines,replacelines):
     find_replace = dict(zip(findlines, replacelines))
     try:
-        with open(f_in,"r") as data:
+        with open(f_in,"r",newline=None) as data:
             with open(f_out, 'w') as new_data:
                 for line in data:
                     for key in find_replace:
@@ -215,7 +214,7 @@ def run_codeml(ctlFile):
 
 # omega for branch-site models
 def omega_bs(alt_file):
-    with open(alt_file, "r") as alt:
+    with open(alt_file, "r",newline=None) as alt:
         lines = alt.readlines()
     for line in lines:
         if line.startswith("foreground w"):
@@ -225,7 +224,7 @@ def omega_bs(alt_file):
 
 # omega for branch model (one omega for the whole coding seq)
 def omega_bm(alt_file):
-    with open(alt_file, "r") as alt:
+    with open(alt_file, "r",newline=None) as alt:
         lines = alt.readlines()
     for line in lines:
         if line.startswith("w (dN/dS) for branches:"):
