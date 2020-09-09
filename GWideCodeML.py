@@ -343,20 +343,32 @@ def main():
 
     
     # Filter fasta files if omin and cmin provided
-    remove_fasta = []
-    if args.min_out:
-        for s in fasta_files:
-            spp_tags = fasta_ids(os.path.join(working_dir, s))
-            outgroups = count_dict_values(spp_tags, branch_marks, "0")
-            if outgroups < int(args.min_out):
-                remove_fasta.append(s)
+    # If omin or cmin, branch marks file is necessary
+    # otherwise: exit
 
-    if args.min_clade:
-        for s in fasta_files:
-            spp_tags = fasta_ids(os.path.join(working_dir, s))
-            clade = count_dict_values(spp_tags, branch_marks, "1")
-            if clade < int(args.min_clade):
-                remove_fasta.append(s)
+    if args.min_out or args.min_clade:
+        if args.mark == None:
+            print("If you choose filter out alignments" \
+                  "by a minimum number of taxa and/or outgroups, you should provide labels in a text file using the -branch option." \
+                  "Please, check the manual to provide a file in the right format.\n" \
+                  "Exiting... ")
+            exit()
+        else:
+            branch_marks = read_branches(args.mark)
+            remove_fasta = []
+            if args.min_out and branch_marks:
+                for s in fasta_files:
+                    spp_tags = fasta_ids(os.path.join(working_dir, s))
+                    outgroups = count_dict_values(spp_tags, branch_marks, "0")
+                    if outgroups < int(args.min_out):
+                        remove_fasta.append(s)
+
+            if args.min_clade and branch_marks:
+                for s in fasta_files:
+                    spp_tags = fasta_ids(os.path.join(working_dir, s))
+                    clade = count_dict_values(spp_tags, branch_marks, "1")
+                    if clade < int(args.min_clade):
+                        remove_fasta.append(s)
 
 
 
