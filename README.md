@@ -14,7 +14,7 @@ For more information please visit https://github.com/lauguma/GWideCodeML/wiki
 
 ## Requirements
 
-GWideCodeML is written in Python 3.
+Python 3.5. or higher.
 
 
 ### Python libraries 
