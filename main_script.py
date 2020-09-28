@@ -71,9 +71,9 @@ def main():
     logging.info("Nr. of threads: {}".format(str(t)))
 
     # START
+    outputs = []
     for r in range(1,rounds+1):
         run_name = "r" + str(r).zfill(2)
-        outputs = []
         logging.info("Starting GWideCodeML analysis... ROUND NAME: {}".format(run_name))
         # Filter fasta files if omin and cmin provided
         # If omin or cmin, branch marks file is necessary
