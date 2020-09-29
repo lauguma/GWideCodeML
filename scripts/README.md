@@ -10,8 +10,9 @@ corresponding to different species labeled with a conserved identifier ("SPPTAG"
 This identifier will be used to identify orthologs having representatives of all the species provided 
 in the analyses. The script will identify those orthologs and create files necessary for phylogeny reconstruction.
 Sequence names must be in the following format:
+'>SPPTAG_genename'
 
->SPPTAG_genename e.g.: 
+e.g.: 
 
 `>SCERS288C_YPL091W`
 
