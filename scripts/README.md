@@ -60,4 +60,4 @@ optional arguments:
 This script takes as input nucleotide coding sequences in fasta file format:
 - Translate them into aminoacids (.faa files).  
 - Align aminoacid sequences. User can choose alignment tool between prank, mafft and muscle (default). Please, note that prank is much more slower than the others (.faa.msa files).  
-- Back-translate alined aminoacid sequences into codon alignments (final output, .cd.msa files).  
+- Back-translate aligned aminoacid sequences into codon alignments (final output, .cd.msa files).  
