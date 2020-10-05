@@ -1,12 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__author__ = "Laura Gutierrez Macias and Christina Toft"
-__version__ = "develop"
-__mantainer__ = "Laura G. Macias"
-__email__ = "laugmacias@gmail.com"
-
-
 import os
 import multiprocessing as mp
 from ete3 import EvolTree
@@ -72,15 +66,21 @@ def main():
 
     # START
     outputs = []
-    for r in range(1,rounds+1):
+    for r in range(1, rounds+1):
         run_name = "r" + str(r).zfill(2)
         logging.info("Starting GWideCodeML analysis... ROUND NAME: {}".format(run_name))
-        # Filter fasta files if omin and cmin provided
-        # If omin or cmin, branch marks file is necessary
-        # otherwise: exit
+        # Filter fasta if contains duplicated genome tags
         remove_fasta = []
+        fasta_dups = utils.dup_tags(fasta_files)
+        remove_fasta.extend(fasta_dups)
+        if len(fasta_dups) > 0:
+            logging.warning("Found duplicated genome tags in fasta files. {} fasta files "
+                            "won't be analyzed".format(len(fasta_dups)))
+            logging.warning("Discarded fasta files: {}".format(fasta_dups))
+        # Filter fasta files if omin and cmin provided
         if args.min_out or args.min_clade:
             logging.info("Applying filters...")
+            # If omin or cmin, branch marks file is necessary
             if args.mark == None:
                 logging.error("If you choose filter out alignments by a minimum number of taxa \
                 and/or outgroups, you should provide labels in a text file using the -branch option. \

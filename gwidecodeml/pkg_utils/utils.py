@@ -8,12 +8,14 @@ from Bio import SeqIO
 from .codemltools import model_selection, codeml_settings
 import logging
 
+
 def list_files(work_dir, suffix):
     """Return a list of files with a certain pattern in a directory"""
     file_list = [f for f in os.listdir(work_dir) if f.endswith(suffix)]
     return file_list
 
-def count_dict_values(list_in,dict_in,key):
+
+def count_dict_values(list_in, dict_in, key):
     """Count nr values from a list having a given key in a dictionary"""
     total_values = 0
     for x in list_in:
@@ -32,8 +34,32 @@ def fasta_ids(fasta):
     return ids
 
 
+def check_if_duplicates(list_elements):
+    """Check if given list contains any duplicates"""
+    if len(list_elements) == len(set(list_elements)):
+        return False
+    else:
+        return True
+
+
+def dup_tags(fasta_file_list):
+    """Read a list of fasta files and returns fasta file name
+    list containing duplicated genome tags"""
+    fasta_dups = []
+    for fasta_file in fasta_file_list:
+        fasta_handle = SeqIO.parse(fasta_file, "fasta")
+        tags = []
+        for s in fasta_handle:
+            genome_tag = s.id.split("_")[0]
+            tags.append(genome_tag)
+        fasta_handle.close()
+    if check_if_duplicates(tags):
+        fasta_dups.append(fasta_file)
+    return fasta_dups
+
+
 def fasta2phy(msa_input, phy_out):
-    """Transform fasta format to format compatible with paml"""
+    """Convert fasta format into format compatible with paml"""
     input_handle = open(msa_input, "r",newline=None)
     output_handle = open(phy_out, "w")
     alignments = SeqIO.parse(input_handle, "fasta")
@@ -51,7 +77,8 @@ def fasta2phy(msa_input, phy_out):
         output_handle.write(line_out)
     output_handle.close()
 
-def read_replace(f_in,f_out,findlines,replacelines):
+
+def read_replace(f_in, f_out,findlines, replacelines):
     """Replace multiple lines in a text file"""
     find_replace = dict(zip(findlines, replacelines))
     try:
@@ -66,6 +93,7 @@ def read_replace(f_in,f_out,findlines,replacelines):
         logging.error("Error: gwcodeml.ctl. No such file in the working directory")
         exit()
 
+
 def create_dir(work_dir, dir_name):
     """Create a new folder in the working_dir
     if folder exits, do nothing"""
@@ -76,10 +104,12 @@ def create_dir(work_dir, dir_name):
     else:
         os.mkdir(dirpath)
 
+
 def move_files(work_dir,file_name,subfolder):
     """Move files to subfolder"""
     file_path = os.path.join(work_dir,file_name)
     shutil.move(file_path,subfolder)
+
 
 def control_files(work_dir,model,gene,run):
     """Creates both null and alt ctl files"""
@@ -92,6 +122,7 @@ def control_files(work_dir,model,gene,run):
     # create ctl file for alternative hypothesis testing
     f1, r1 = codeml_settings(gene + ".phy", gene + ".tree", gene + "_" + run + "_alt.txt", h1)
     read_replace(ctl_in, gene+"_alt.ctl", f1, r1)
+
 
 def is_multiple_testing(branches_file):
     """Check if multiple foreground branches"""
