@@ -1,4 +1,4 @@
-# **GWideCodeML:** an automatic pipeline for testing evolutionary hypothesis at the genome-wide level.
+# **GWideCodeML:** a Python package for testing evolutionary hypothesis at the genome-wide level using codeml.
 
 ## Description
 
@@ -9,7 +9,7 @@ For more information please visit https://github.com/lauguma/GWideCodeML/wiki
 
 ## Release history
 
-* v1.0.0 Released on 2020/xx/xx
+* v1.0 Released on 2020/10/07
 
 
 ## Requirements
