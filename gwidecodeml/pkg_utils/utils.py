@@ -82,7 +82,7 @@ def read_replace(f_in, f_out,findlines, replacelines):
     """Replace multiple lines in a text file"""
     find_replace = dict(zip(findlines, replacelines))
     try:
-        with open(f_in,"r",newline=None) as data:
+        with open(f_in, "r", newline=None) as data:
             with open(f_out, 'w') as new_data:
                 for line in data:
                     for key in find_replace:
@@ -111,7 +111,7 @@ def move_files(work_dir,file_name,subfolder):
     shutil.move(file_path,subfolder)
 
 
-def control_files(work_dir,model,gene,run):
+def control_files(work_dir, model, gene, run):
     """Creates both null and alt ctl files"""
     # Create control (.ctl) files
     ctl_in = os.path.join(work_dir,"gwcodeml.ctl")

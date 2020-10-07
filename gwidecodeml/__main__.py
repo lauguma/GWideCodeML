@@ -15,7 +15,7 @@ def main():
 
     working_dir = os.path.abspath(args.wd)
     # logging
-    log_file = os.path.join(working_dir,"gwidecodeml.log")
+    log_file = os.path.join(working_dir, "gwidecodeml.log")
     logging.basicConfig(filename=log_file, filemode="w", level=logging.INFO,
                         format='%(asctime)s :: %(levelname)s :: %(message)s')
     logging.info("Working directory: {}".format(working_dir))
@@ -138,17 +138,17 @@ def main():
             gene_tree = tt.midpoint_root(tt.tree_features(os.path.join(working_dir, name, fasta + ".ftree")))
 
             # Mark branches if branch or branch-site models selected
-            if model in ["BM","BS"]:
+            if model in ["BM", "BS"]:
                 mark_spp = list(set(branch_marks[str(r)]).intersection(genomes))
                 tt.mark_branches(tree,mark_spp)
-                logging.info("Foreground branch is composed of {} labels".format(mark_spp))
+                # logging.info("Foreground branch is composed of {} labels".format(mark_spp))
                 # Check monophyly of taxa
                 if not tt.is_monophyletic(gene_tree, mark_spp):
                     logging.warning("Check monophyly in the clade-of-interest: {}".format(name))
 
             tree.write(outfile=name+".tree") # write tree with only topology
             # File format converter: MSA fasta --> Phylip
-            utils.fasta2phy(os.path.join(working_dir,fasta), name + ".phy")
+            utils.fasta2phy(os.path.join(working_dir, fasta), name + ".phy")
 
             # Create alt and null ctl files
             utils.control_files(working_dir, args.mode, name, run_name)
@@ -178,7 +178,7 @@ def main():
 
         # Write significant genes to output
         ct.final_output(significants, args.mode, run_name)
-        logging.info("Total nr. of genes rejecting null hypothesis: {}".format(str(len(significants))))
+        logging.info("Total nr. of genes rejecting null hypothesis: {}".format(len(significants)))
 
         logging.info("dnds option selected. Omega values will be written to an output file.")
         # if -dnds option, an extra file is created with omega values for all tested genes
