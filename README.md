@@ -9,15 +9,15 @@ For further information on installation and usage, please visit https://github.c
 ## Installation
 ### Option 1:
 
-1. Download GWideCodeML
+1. Download GWideCodeML \
 `git clone https://github.com/lauguma/GWideCodeML.git` \
 `cd GWideCodeML`
 
-2. Install
+2. Install \
 `python setup.py install`
 
-3. Run GWideCodeML: if succesfull installation, gwidecodeml executable is created. You can check it by writing in your console:
-`gwidecodeml -h`
+3. Run GWideCodeML: if succesfull installation, gwidecodeml executable is created. You can check it by writing in your console: \
+`gwidecodeml -h` \
 
 Note: if you choose this option, all requirements must be satisfaied before running GWideCodeML (e.g. codeml must be installed and available from the working directory), see Requirements section.
 
@@ -27,21 +27,21 @@ Note: if you choose this option, all requirements must be satisfaied before runn
 0. Install and initialize miniconda \
 (skip in case you already have a conda env and know how it works) \
 https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html \
-close and open a new console before continue
+close and open a new console before continue \
 
-1. Download GWideCodeML
+1. Download GWideCodeML \
 `git clone https://github.com/lauguma/GWideCodeML.git` \
 `cd GWideCodeML`
 
-2. Create a conda environment from yml file
-`conda env create -f gwidecodeml_conda.yml`
+2. Create a conda environment from yml file \
+`conda env create -f gwidecodeml_conda.yml` \
 
-3. Activate conda environment
+3. Activate conda environment \
 `conda activate gwcodeml`
 
-4. Install and run GWideCodeML
+4. Install and run GWideCodeML \
 `python setup.py install` \
-`gwidecodeml -h`
+`gwidecodeml -h` 
 
 ## Requirements
 
@@ -50,9 +50,9 @@ Python >= 3.5
 
 **Python libraries**
 
-* Biopython \
-* Scipy \
-* ete3 \
+* Biopython 
+* Scipy 
+* ete3 
 
 **Software**
 
