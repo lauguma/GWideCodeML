@@ -19,13 +19,18 @@ For further information on installation and usage, please visit https://github.c
 3. Run GWideCodeML: if succesfull installation, gwidecodeml executable is created. You can check it by writing in your console:
 `gwidecodeml -h`
 
-Note: if you choose this options all requirements must be satisfaied before running GWideCodeML (e.g. codeml must be installed and available from the working directory), see Requirements section.
+Note: if you choose this option, all requirements must be satisfaied before running GWideCodeML (e.g. codeml must be installed and available from the working directory), see Requirements section.
 
-### Option 2: conda environment 
+### Option 2: conda environment
 (easier, recommended option)
 
+0. Install and initialize miniconda 
+(skip in case you already have a conda env and know how it works)
+https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html
+close and open a new console before continue
+
 1. Download GWideCodeML
-`git clone https://github.com/lauguma/GWideCodeML.git`
+`git clone https://github.com/lauguma/GWideCodeML.git` ;
 `cd GWideCodeML`
 
 2. Create a conda environment from yml file
@@ -35,7 +40,7 @@ Note: if you choose this options all requirements must be satisfaied before runn
 `conda activate gwcodeml`
 
 4. Install and run GWideCodeML
-`python setup.py install`
+`python setup.py install` ;
 `gwidecodeml -h`
 
 ## Requirements
