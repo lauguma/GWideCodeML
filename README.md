@@ -10,7 +10,7 @@ For further information on installation and usage, please visit https://github.c
 ### Option 1:
 
 1. Download GWideCodeML \
-`git clone https://github.com/lauguma/GWideCodeML.git` 
+`git clone https://github.com/lauguma/GWideCodeML.git` \
 `cd GWideCodeML`
 
 2. Install \
@@ -27,14 +27,14 @@ Note: if you choose this option, all requirements must be satisfaied before runn
 0. Install and initialize miniconda \
 (skip in case you already have a conda env and know how it works) \
 https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html \
-close and open a new console before continue \
+close and open a new console before continue 
 
 1. Download GWideCodeML \
 `git clone https://github.com/lauguma/GWideCodeML.git` \
 `cd GWideCodeML`
 
 2. Create a conda environment from yml file \
-`conda env create -f gwidecodeml_conda.yml` \
+`conda env create -f gwidecodeml_conda.yml` 
 
 3. Activate conda environment \
 `conda activate gwcodeml`
