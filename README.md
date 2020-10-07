@@ -1,6 +1,5 @@
-===========
-GWideCodeML
-===========
+# GWideCodeML
+
 
 GWideCodeML is a Python package that provides support for testing evolutionary hypothesis using codeml (from the PAML package) in a genome-wide framework.
 
@@ -9,8 +8,8 @@ For further information on installation and usage, please visit https://github.c
 
 
 
-Requirements
-============
+## Requirements
+
 
 Python >= 3.5
 
@@ -27,8 +26,19 @@ Python >= 3.5
 
 Easy installation recommended via pip install using conda environments.
 
-Citation
-========
+## Installation
+
+1. Download GWideCodeML
+`git clone https://github.com/lauguma/GWideCodeML.git`
+
+2. Install
+`python setup.py install`
+
+3. Run GWideCodeML: if succesfull installation, gwidecodeml executable is created. You can check it by writing in your console:
+`gwidecodeml -h`
+
+
+## Citation
 
 Macías L. G., Barrio E. and Toft. C. GWideCodeML: a Python package for testing evolutionary hypothesis at the genome-wide level (unpublished).
 
