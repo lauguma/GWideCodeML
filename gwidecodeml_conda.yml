@@ -1,0 +1,15 @@
+name: gwcodeml
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.6
+  - numpy
+  - scipy
+  - ete3
+  - fasttree
+  - trimal
+  - raxml
+  - paml
+  - muscle
+  - mafft
