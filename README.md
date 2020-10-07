@@ -10,7 +10,7 @@ For further information on installation and usage, please visit https://github.c
 ### Option 1:
 
 1. Download GWideCodeML
-`git clone https://github.com/lauguma/GWideCodeML.git`
+`git clone https://github.com/lauguma/GWideCodeML.git` \
 `cd GWideCodeML`
 
 2. Install
@@ -24,13 +24,13 @@ Note: if you choose this option, all requirements must be satisfaied before runn
 ### Option 2: conda environment
 (easier, recommended option)
 
-0. Install and initialize miniconda 
-(skip in case you already have a conda env and know how it works)
-https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html
+0. Install and initialize miniconda \
+(skip in case you already have a conda env and know how it works) \
+https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html \
 close and open a new console before continue
 
 1. Download GWideCodeML
-`git clone https://github.com/lauguma/GWideCodeML.git` ;
+`git clone https://github.com/lauguma/GWideCodeML.git` \
 `cd GWideCodeML`
 
 2. Create a conda environment from yml file
@@ -40,7 +40,7 @@ close and open a new console before continue
 `conda activate gwcodeml`
 
 4. Install and run GWideCodeML
-`python setup.py install` ;
+`python setup.py install` \
 `gwidecodeml -h`
 
 ## Requirements
@@ -50,13 +50,13 @@ Python >= 3.5
 
 **Python libraries**
 
-* Biopython 
-* Scipy 
-* ete3 
+* Biopython \
+* Scipy \
+* ete3 \
 
 **Software**
 
-* *codeml* from the PAML package (Phylogenetics Analysis by Maximum Likelihood). http://abacus.gene.ucl.ac.uk/software/paml.html
+* *codeml* from the PAML package (Phylogenetics Analysis by Maximum Likelihood). http://abacus.gene.ucl.ac.uk/software/paml.html \
 * fastTree 
 
 
