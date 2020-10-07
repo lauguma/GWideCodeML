@@ -10,14 +10,14 @@ For further information on installation and usage, please visit https://github.c
 ### Option 1:
 
 1. Download GWideCodeML \
-`git clone https://github.com/lauguma/GWideCodeML.git` \
+`git clone https://github.com/lauguma/GWideCodeML.git` 
 `cd GWideCodeML`
 
 2. Install \
 `python setup.py install`
 
 3. Run GWideCodeML: if succesfull installation, gwidecodeml executable is created. You can check it by writing in your console: \
-`gwidecodeml -h` \
+`gwidecodeml -h` 
 
 Note: if you choose this option, all requirements must be satisfaied before running GWideCodeML (e.g. codeml must be installed and available from the working directory), see Requirements section.
 
