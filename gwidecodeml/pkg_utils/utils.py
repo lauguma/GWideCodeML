@@ -52,7 +52,7 @@ def dup_tags(fasta_file_list):
         for s in fasta_handle:
             genome_tag = s.id.split("_")[0]
             tags.append(genome_tag)
-        fasta_handle.close()
+        # fasta_handle.close()
     if check_if_duplicates(tags):
         fasta_dups.append(fasta_file)
     return fasta_dups
@@ -60,7 +60,7 @@ def dup_tags(fasta_file_list):
 
 def fasta2phy(msa_input, phy_out):
     """Convert fasta format into format compatible with paml"""
-    input_handle = open(msa_input, "r",newline=None)
+    input_handle = open(msa_input, "r", newline=None)
     output_handle = open(phy_out, "w")
     alignments = SeqIO.parse(input_handle, "fasta")
     msa_seqs = dict()
@@ -76,22 +76,6 @@ def fasta2phy(msa_input, phy_out):
         line_out = k + "  " + v + "\n"
         output_handle.write(line_out)
     output_handle.close()
-
-
-def read_replace(f_in, f_out,findlines, replacelines):
-    """Replace multiple lines in a text file"""
-    find_replace = dict(zip(findlines, replacelines))
-    try:
-        with open(f_in, "r", newline=None) as data:
-            with open(f_out, 'w') as new_data:
-                for line in data:
-                    for key in find_replace:
-                        if key in line:
-                            line = line.replace(key, find_replace[key])
-                    new_data.write(line)
-    except FileNotFoundError:
-        logging.error("Error: gwcodeml.ctl. No such file in the working directory")
-        exit()
 
 
 def create_dir(work_dir, dir_name):
@@ -111,26 +95,22 @@ def move_files(work_dir,file_name,subfolder):
     shutil.move(file_path,subfolder)
 
 
-def control_files(work_dir, model, gene, run):
-    """Creates both null and alt ctl files"""
-    # Create control (.ctl) files
-    ctl_in = os.path.join(work_dir,"gwcodeml.ctl")
-    h0,h1 = model_selection(model)
-    # create ctl file for null hypothesis testing
-    f0,r0 = codeml_settings(gene+".phy", gene+".tree", gene + "_" + run + "_null.txt", h0)
-    read_replace(ctl_in, gene+"_null.ctl", f0, r0)
-    # create ctl file for alternative hypothesis testing
-    f1, r1 = codeml_settings(gene + ".phy", gene + ".tree", gene + "_" + run + "_alt.txt", h1)
-    read_replace(ctl_in, gene+"_alt.ctl", f1, r1)
-
-
 def is_multiple_testing(branches_file):
     """Check if multiple foreground branches"""
     labels = branches_file.keys()
     multiple = 0
     for x in labels:
-        if x not in ["0","1"]:
+        if x not in ["0", "1"]:
             multiple += 1
     return multiple
 
 
+def check_custom(files_path):
+    """When custom model selected, checks if .ctl files are in dir
+    and returns True if both in dir."""
+    st1 = os.path.isfile(os.path.join(files_path, "custom_alt.ctl"))
+    st2 = os.path.isfile(os.path.join(files_path, "custom_null.ctl"))
+    if st1 and st2:
+        return True
+    else:
+        return False

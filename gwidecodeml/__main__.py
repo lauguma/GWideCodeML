@@ -10,6 +10,7 @@ from .pkg_utils.arguments import args
 from .pkg_utils import utils
 import logging
 
+
 # Main steps of the program
 def main():
 
@@ -38,14 +39,20 @@ def main():
     t = int(args.threads)
 
     # Model selection
-    models = ["BS","BM","SM"]
+    models = ["BS", "BM", "SM", "custom"]
     model = str(args.mode)
     if model not in models:
         logging.error("Incorrect model selection. Exiting...")
         exit()
+    elif model == "custom":
+        if not utils.check_custom(working_dir):
+            logging.error("Custom control files for codeml not found. Please, create and copy"
+                          "custom_alt.ctl and custom_null.ctl files to the working directory to "
+                          "run GWideCodeML under a custom mode. Exiting...")
+            exit()
 
-    rounds = 1 # one round by default unless multiple testing
-    if model in ["BM","BS"]:
+    rounds = 1  # one round by default unless multiple testing
+    if model in ["BM", "BS"]:
         if args.mark == None:
             logging.error("If you choose branch or branch-site model, a file specifying \
             branch labels must be provided using -branch option.\
@@ -127,8 +134,8 @@ def main():
             name = fasta.replace(args.suffix,"")
             #print(name)
             # create path and change dir
-            utils.create_dir(working_dir,name)
-            os.chdir(os.path.join(working_dir,name))
+            utils.create_dir(working_dir, name)
+            os.chdir(os.path.join(working_dir, name))
             genomes = utils.fasta_ids(os.path.join(working_dir, fasta)) # genomes contained in fasta file
             gene_names.append(name)
             # Tree prunning
@@ -151,7 +158,7 @@ def main():
             utils.fasta2phy(os.path.join(working_dir, fasta), name + ".phy")
 
             # Create alt and null ctl files
-            utils.control_files(working_dir, args.mode, name, run_name)
+            ct.control_files(working_dir, args.mode, name, run_name)
 
         logging.info("Control files successfully created, GWidecodeml is ready for codeml performance")
 
@@ -173,11 +180,11 @@ def main():
         for x in gene_names:
             hyp_alt = os.path.join(working_dir, x, x + "_" + run_name + "_alt.txt")
             hyp_null = os.path.join(working_dir, x, x + "_" + run_name + "_null.txt")
-            if ct.if_significant(hyp_alt,hyp_null,args.mode):
+            if ct.if_significant(hyp_alt, hyp_null, args.mode):
                 significants.append(x)
 
         # Write significant genes to output
-        ct.final_output(significants, args.mode, run_name)
+        ct.final_output(significants, args.mode, run_name, working_dir)
         logging.info("Total nr. of genes rejecting null hypothesis: {}".format(len(significants)))
 
         logging.info("dnds option selected. Omega values will be written to an output file.")
