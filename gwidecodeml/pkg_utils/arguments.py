@@ -4,8 +4,6 @@
 from argparse import ArgumentParser
 import os
 
-args = None
-
 def parse_arguments():
     parser = ArgumentParser(description="Parameters for GWideCodeml performance")
     requiredNamed = parser.add_argument_group('required arguments')
@@ -20,7 +18,8 @@ def parse_arguments():
     parser.add_argument("-dnds", dest="get_dnds", action="store_true", default=False)
     parser.add_argument("-omin", dest="min_out", help="min nr. of outgroup spp", default=None)
     parser.add_argument("-cmin", dest="min_clade", help="min nr. of clade spp", default=None)
-    parser.add_argument("-gene_trees", dest="single_trees",action="store_true", help="min nr. of outgroup spp", default=False)
+    parser.add_argument("-gene_trees", dest="single_trees",action="store_true", help="min nr. of outgroup spp",
+                        default=False)
 
     parser.parse_args()
     global args

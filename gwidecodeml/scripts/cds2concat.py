@@ -12,7 +12,7 @@ import os
 
 
 
-# USAGE python ffn2align -h
+# USAGE cds2concat -h
 
 def read_spptag(fasta_in):
     """Read a fasta file a returns species names contained in headers
@@ -141,8 +141,8 @@ def cat_msa(suffix_msa):
 
 def main():
     """This script takes fasta files containing annotated genes as input: one fasta per gene
-    and one species/strain per fasta, all the fasta files must contain the same species/strains
-    named under the same way.
+    and one species/strain per fasta.
+    Species names must be conserved within all the annotated genes.
     Fasta files extension must be indicated (-cds option) and files must be located in the working dir.
     The output will be:
     - Translated fasta files into amino-acid sequences (.faa)

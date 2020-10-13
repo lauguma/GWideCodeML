@@ -5,6 +5,7 @@ import csv
 from ete3 import EvolTree
 import subprocess
 
+
 def read_branches(txt_in):
     """Read branch labels from a text file
     return info as dict"""
@@ -19,6 +20,7 @@ def read_branches(txt_in):
 
     return branches
 
+
 def read_leaves(tree_in):
     """Parse species tree and return a list with leaves names"""
     # save in a list all spp contained in spp tree
@@ -27,10 +29,12 @@ def read_leaves(tree_in):
         leaves.append(leaf.name)
     return leaves
 
+
 def prune_tree(ptree,labels):
     """Prune tree until it contains labels provided"""
     nodes = read_leaves(ptree)
     ptree.prune(list(set(nodes).intersection(labels)))
+
 
 def mark_branches(mtree, labels):
     if len(labels) > 1:
@@ -42,7 +46,6 @@ def mark_branches(mtree, labels):
         mtree.mark_tree([n1], marks=["#1"])
 
 
-
 def is_monophyletic(tree_object, tag_names):
     """Check whether a group of individuals group exclusively
     together within a tree partition"""
@@ -51,6 +54,7 @@ def is_monophyletic(tree_object, tag_names):
         return True
     else:
         return False
+
 
 def fast_tree(ali_file,ali_out):
     """Run FastTree to get a phylogeny per gene"""
@@ -61,12 +65,14 @@ def fast_tree(ali_file,ali_out):
     file.write(process_output.decode('utf-8'))
     file.close()
 
+
 def tree_features(tree_file):
     """Add a feature to the tree called <spptag> with the Species Tag"""
     tree_handle = EvolTree(tree_file)
     for leaf in tree_handle.iter_leaves():
         leaf.add_feature("spptag", leaf.name.split("_")[0])
     return tree_handle
+
 
 def midpoint_root(genetree):
     """Gene trees will be temporary midpoint rooted to check monophyly"""
