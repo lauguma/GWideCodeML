@@ -64,7 +64,7 @@ Python >= 3.5
 
 Macías L. G., Barrio E. and Toft. C. GWideCodeML: a Python package for testing evolutionary hypothesis at the genome-wide level (unpublished).
 
-Our pipeline uses third-party software. If you are using GWideCodeML, please, also cite:
+Our pipeline uses third-party software:
 
 Yang, Z. "PAML 4: a program package for phylogenetic analysis by maximum likelihood."
 Mol Biol Evol (2017) doi: 10.1093/molbev/msm088 
