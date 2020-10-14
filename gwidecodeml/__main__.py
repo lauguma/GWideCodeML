@@ -3,9 +3,8 @@
 
 import os
 import multiprocessing as mp
-from ete3 import EvolTree
-from .pkg_utils import codemltools as ct
-from .pkg_utils import treetools as tt
+# from .pkg_utils import codemltools as ct
+# from .pkg_utils import treetools as tt
 from .pkg_utils.arguments import args
 from .pkg_utils import utils
 import logging
@@ -28,11 +27,10 @@ def main():
         exit()
 
     # Species tree
-    if args.spp_tree == None:
+    if args.spp_tree is None:
         logging.error("Please, provide a tree in NEWICK format. Exiting...")
         exit()
     spptree = os.path.abspath(args.spp_tree)
-
 
     # Setting optional arguments:
     # nr. threads define by the user
@@ -52,14 +50,17 @@ def main():
             exit()
 
     rounds = 1  # one round by default unless multiple testing
+
+    # Init branch_marks
+    branch_marks = None
     if model in ["BM", "BS"]:
-        if args.mark == None:
+        if args.mark is None:
             logging.error("If you choose branch or branch-site model, a file specifying \
             branch labels must be provided using -branch option.\
             Please, check the manual to provide a file in the right format.\n Exiting... ")
             exit()
         else:
-            branch_marks = tt.read_branches(args.mark)
+            branch_marks = utils.read_branches(args.mark)
             # check if multiple branch testing
             if utils.is_multiple_testing(branch_marks) != 0:
                 rounds += utils.is_multiple_testing(branch_marks)
@@ -88,14 +89,14 @@ def main():
         if args.min_out or args.min_clade:
             logging.info("Applying filters...")
             # If omin or cmin, branch marks file is necessary
-            if args.mark == None:
+            if args.mark is None:
                 logging.error("If you choose filter out alignments by a minimum number of taxa \
                 and/or outgroups, you should provide labels in a text file using the -branch option. \
                 Please, check the manual to provide a file in the right format.\n \
                 Exiting... ")
                 exit()
             else:
-                branch_marks = tt.read_branches(args.mark)
+                branch_marks = utils.read_branches(args.mark)
 
                 if args.min_out and branch_marks:
                     logging.info("Minimum number of outgroup species: {}".format(str(args.min_out)))
@@ -130,41 +131,16 @@ def main():
         # Prepare files that have passed filters for codeml performance
         gene_names = []
         for fasta in fasta_list:
-            tree = EvolTree(spptree)  # init tree every time a fasta is open
-            name = fasta.replace(args.suffix,"")
-            #print(name)
-            # create path and change dir
-            utils.create_dir(working_dir, name)
-            os.chdir(os.path.join(working_dir, name))
-            genomes = utils.fasta_ids(os.path.join(working_dir, fasta)) # genomes contained in fasta file
-            gene_names.append(name)
-            # Tree prunning
-            tt.prune_tree(tree,genomes)
-            # Individual gene trees
-            tt.fast_tree(os.path.join(working_dir, fasta), os.path.join(working_dir, name, fasta + ".ftree"))
-            gene_tree = tt.midpoint_root(tt.tree_features(os.path.join(working_dir, name, fasta + ".ftree")))
+            utils.prepare_codeml(r, fasta, spptree, branch_marks, working_dir)
+            gene_names.append(fasta.replace(args.suffix, ""))
 
-            # Mark branches if branch or branch-site models selected
-            if model in ["BM", "BS"]:
-                mark_spp = list(set(branch_marks[str(r)]).intersection(genomes))
-                tt.mark_branches(tree,mark_spp)
-                # logging.info("Foreground branch is composed of {} labels".format(mark_spp))
-                # Check monophyly of taxa
-                if not tt.is_monophyletic(gene_tree, mark_spp):
-                    logging.warning("Check monophyly in the clade-of-interest: {}".format(name))
-
-            tree.write(outfile=name+".tree") # write tree with only topology
-            # File format converter: MSA fasta --> Phylip
-            utils.fasta2phy(os.path.join(working_dir, fasta), name + ".phy")
-
-            # Create alt and null ctl files
-            ct.control_files(working_dir, args.mode, name, run_name)
 
         logging.info("Control files successfully created, GWidecodeml is ready for codeml performance")
+        os.chdir(working_dir)
 
         # Run codeml in parallel
-        pool = mp.Pool(t) # number of threads
-        pool.map(ct.run_codeml, [ctl for ctl in gene_names])
+        pool = mp.Pool(t)  # number of# threads
+        pool.map(utils.run_codeml, [ctl for ctl in gene_names])
         pool.close()
         os.chdir(working_dir)
 
@@ -174,34 +150,29 @@ def main():
         else:
             logging.info("Codeml has finished, output files successfully created. Running LRTs...")
 
-
         # LRTs, keep genes with p-value < 0.05
         significants = []
         for x in gene_names:
             hyp_alt = os.path.join(working_dir, x, x + "_" + run_name + "_alt.txt")
             hyp_null = os.path.join(working_dir, x, x + "_" + run_name + "_null.txt")
-            if ct.if_significant(hyp_alt, hyp_null, args.mode):
+            if utils.if_significant(hyp_alt, hyp_null, model):
                 significants.append(x)
 
         # Write significant genes to output
-        ct.final_output(significants, args.mode, run_name, working_dir)
+        utils.final_output(significants, model, run_name, working_dir)
         logging.info("Total nr. of genes rejecting null hypothesis: {}".format(len(significants)))
 
         logging.info("dnds option selected. Omega values will be written to an output file.")
         # if -dnds option, an extra file is created with omega values for all tested genes
-        if args.get_dnds and args.mode in ["BM","BS"]:
-            ct.dnds_output(args.mode, working_dir, gene_names, run_name)
+        if args.get_dnds and model in ["BM", "BS"]:
+            utils.dnds_output(model, working_dir, gene_names, run_name)
 
-
-
-        out_file_name = "results_{}_{}.tsv".format(run_name,args.mode)
+        out_file_name = "results_{}_{}.tsv".format(run_name, model)
         outputs.append(out_file_name)
         logging.info("Round name {} finished".format(run_name))
 
     logging.info("GWideCodeML successfully run. Please, check results files: {}".format(outputs))
 
 
-
 if __name__ == "__main__":
     main()
-

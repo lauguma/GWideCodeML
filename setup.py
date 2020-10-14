@@ -8,7 +8,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="gwidecodeml",  # Replace with your own username
-    version="1.0",
+    version="1.1",
     author="Laura G. Macias",
     author_email="laugmacias@gmail.com",
     description="Testing positive selection in a genome-wide framework",
