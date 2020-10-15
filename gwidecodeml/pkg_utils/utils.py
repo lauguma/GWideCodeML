@@ -317,7 +317,6 @@ def run_codeml(ctlfile):
     # codeml null hypothesis
     logging.info("Running codeml null hypothesis on {}".format(ctlfile))
     bash_command = "codeml " + ctlfile + "_null.ctl"
-    print(bash_command)
     process = subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output, error = process.communicate()
     # codeml alt hypothesis
@@ -469,13 +468,13 @@ def dnds_output(model, work_dir, genes_list, run):
             dnds_values = omega_bm(os.path.join(work_dir, gene, gene + "_" + run + "_alt.txt"))
             l_out = [gene] + dnds_values
             tsvwriter.writerow(l_out)
-        if model == "BS":
-            col_names = ["Gene", "#1"]
-            tsvwriter.writerow(col_names)
-            for gene in genes_list:
-                dnds_branch = omega_bs(os.path.join(work_dir, gene, gene + "_" + run + "_alt.txt"))
-                l_out = [gene, dnds_branch]
-                tsvwriter.writerow(l_out)
+    elif model == "BS":
+        col_names = ["Gene", "#1"]
+        tsvwriter.writerow(col_names)
+        for gene in genes_list:
+            dnds_branch = omega_bs(os.path.join(work_dir, gene, gene + "_" + run + "_alt.txt"))
+            l_out = [gene, dnds_branch]
+            tsvwriter.writerow(l_out)
     omega_file.close()
 
 
@@ -483,7 +482,7 @@ def read_branches(txt_in):
     """Read branch labels from a text file
     return info as dict"""
     branches = dict()
-    with open(txt_in, "r",newline=None) as f_in:
+    with open(txt_in, "r", newline=None) as f_in:
         freader = csv.reader(f_in, delimiter=",")
         for row in freader:
             if row[1] in branches:
