@@ -3,7 +3,6 @@
 from argparse import ArgumentParser
 from Bio import SeqIO
 from Bio.Seq import Seq
-from Bio.Alphabet import IUPAC
 from Bio.SeqRecord import SeqRecord
 import multiprocessing as mp
 import subprocess
@@ -34,11 +33,10 @@ def translate(nts_in):
 
     for s in fasta:
         aas = s.seq.translate(stop_symbol="")
-        sequence_object = Seq(str(aas), IUPAC.ExtendedIUPACProtein)
+        sequence_object = Seq(str(aas))
         record = SeqRecord(sequence_object, id=s.id, description="")
         SeqIO.write(record, prot, "fasta")
 
-    fasta.close()
     prot.close()
 
 
@@ -48,8 +46,8 @@ def run_mafft(aa_file):
     process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
     output = process.stdout.read()
 
-    with open(aa_file + ".mafft", "w") as f_out:
-        f_out.write(output)
+    with open(aa_file + ".msa", "w") as f_out:
+        f_out.write(output.decode('utf-8'))
 
 # run muscle
 def run_muscle(aa_file):
@@ -91,11 +89,9 @@ def backTranslate(gene_file):
                     else:
                         chain += aa * 3
 
-                sequence_object = Seq(chain, IUPAC.unambiguous_dna)
+                sequence_object = Seq(chain)
                 record = SeqRecord(sequence_object, id=cds.id, description="")
                 SeqIO.write(record, out_file, "fasta")
-
-        dna.close()
 
 
 def main():
