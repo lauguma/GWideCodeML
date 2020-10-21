@@ -57,7 +57,7 @@ Python >= 3.5
 **Software**
 
 * *codeml* from the PAML package (Phylogenetics Analysis by Maximum Likelihood). http://abacus.gene.ucl.ac.uk/software/paml.html \
-* fastTree 
+* fastTree: http://www.microbesonline.org/fasttree/
 
 
 ## Citation
