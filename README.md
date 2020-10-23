@@ -62,7 +62,7 @@ Python >= 3.5
 
 ## Citation
 
-Macías L. G., Barrio E. and Toft. C. GWideCodeML: a Python package for testing evolutionary hypothesis at the genome-wide level (unpublished).
+Macías L. G., Barrio E. and Toft. C. "GWideCodeML: a Python package for testing evolutionary hypothesis at the genome-wide level" G3: Genes, Genomes, Genetics (2020) doi:10.1534/g3.120.401874. 
 
 Our pipeline uses third-party software:
 
