@@ -79,3 +79,6 @@ ENV/
 
 resources/*
 *.pickle
+
+
+.git/*
