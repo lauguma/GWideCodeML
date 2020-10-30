@@ -146,7 +146,7 @@ def prepare_codeml(round, fasta_file_name, species_tree, marks, wd):
             fast_tree(os.path.join(wd, fasta_file_name),
                       os.path.join(wd, name, fasta_file_name + ".ftree"))
             gene_tree = midpoint_root(tree_features(os.path.join(wd, name, fasta_file_name + ".ftree")))
-            if is_monophyletic(gene_tree, mark_spp):
+            if not is_monophyletic(gene_tree, mark_spp):
                 logging.warning("Check monophyly in the clade-of-interest: {}".format(name))
 
     tree.write(outfile=name + ".tree")  # write tree with only topology
