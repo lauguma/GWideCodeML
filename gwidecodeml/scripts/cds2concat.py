@@ -4,7 +4,6 @@ import argparse
 from Bio import SeqIO
 from Bio import Seq
 from Bio.Seq import Seq
-from Bio.Alphabet import IUPAC
 from Bio.SeqRecord import SeqRecord
 import multiprocessing as mp
 import subprocess
@@ -22,7 +21,6 @@ def read_spptag(fasta_in):
     for s in fasta_handle:
         # Change here if fasta header is in a different format #
         tags.append(s.id.split("_")[0])
-    fasta_handle.close()
     return tags
 
 def remove_duplicates(list_dup):
@@ -51,10 +49,9 @@ def translate(nts_in):
     prot = open(out_file, "w")
     for s in fasta:
         aas = s.seq.translate(stop_symbol="")
-        sequence_object = Seq(str(aas), IUPAC.ExtendedIUPACProtein)
+        sequence_object = Seq(str(aas))
         record = SeqRecord(sequence_object, id=s.id, description="")
         SeqIO.write(record, prot, "fasta")
-    fasta.close()
     prot.close()
 
 
@@ -108,10 +105,9 @@ def back_translate(ali_file):
                     else:
                         chain += aa * 3
 
-                sequence_object = Seq(chain, IUPAC.unambiguous_dna)
+                sequence_object = Seq(chain)
                 record = SeqRecord(sequence_object, id=cds.id, description="")
                 SeqIO.write(record, out_file, "fasta")
-        dna.close()
 
 
 def cat_msa(suffix_msa):
@@ -133,7 +129,7 @@ def cat_msa(suffix_msa):
         fasta.close()
     cat_file = open("cat.cd.msa", "w")
     for k, v in spp.items():
-        sequence_object = Seq(str(v), IUPAC.unambiguous_dna)
+        sequence_object = Seq(str(v))
         record = SeqRecord(sequence_object, id=k, description="")
         SeqIO.write(record, cat_file, "fasta")
     cat_file.close()
