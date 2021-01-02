@@ -138,6 +138,7 @@ def prepare_codeml(round, fasta_file_name, species_tree, marks, wd):
     # Mark branches if branch or branch-site models selected
     if args.mode in ["BM", "BS"]:
         mark_spp = list(set(marks[str(round)]).intersection(genomes))
+        logging.warning("LABELS {}".format(mark_spp))
         mark_branches(tree, mark_spp)
 
         # Check monophyly of taxa if -gene_trees option
@@ -502,6 +503,15 @@ def read_leaves(tree_in):
     return leaves
 
 
+def node_dict(tree_in):
+    """Parse tree and return a dictionary with leaf name as keys
+    and node_ids as values"""
+    nodes = dict()
+    for leaf in tree_in:
+        nodes[leaf.name] = str(leaf.node_id)
+    return nodes
+
+
 def prune_tree(ptree,labels):
     """Prune tree until it contains labels provided"""
     nodes = read_leaves(ptree)
@@ -509,12 +519,14 @@ def prune_tree(ptree,labels):
 
 
 def mark_branches(mtree, labels):
+    tree_nodes = node_dict(mtree)
     if len(labels) > 1:
         ancestor = mtree.get_common_ancestor(labels)
         nx = str(ancestor.node_id)
         mtree.mark_tree([nx], marks=["#1"])
-    else:
-        n1 = str(labels[0].node_id)
+    elif len(labels) == 1:
+        n1 = tree_nodes[labels[0]]
+        logging.warning("NODE  {}".format(n1))
         mtree.mark_tree([n1], marks=["#1"])
 
 
