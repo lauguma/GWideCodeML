@@ -138,7 +138,6 @@ def prepare_codeml(round, fasta_file_name, species_tree, marks, wd):
     # Mark branches if branch or branch-site models selected
     if args.mode in ["BM", "BS"]:
         mark_spp = list(set(marks[str(round)]).intersection(genomes))
-        logging.warning("LABELS {}".format(mark_spp))
         mark_branches(tree, mark_spp)
 
         # Check monophyly of taxa if -gene_trees option
@@ -526,7 +525,6 @@ def mark_branches(mtree, labels):
         mtree.mark_tree([nx], marks=["#1"])
     elif len(labels) == 1:
         n1 = tree_nodes[labels[0]]
-        logging.warning("NODE  {}".format(n1))
         mtree.mark_tree([n1], marks=["#1"])
 
 
