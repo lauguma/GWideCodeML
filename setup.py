@@ -23,7 +23,7 @@ setuptools.setup(
     ],
     install_requires=['ete3', 'biopython', 'scipy'],
     include_package_data=True,
-    python_requires='>=3.',
+    python_requires='>=3.9',
     entry_points={
         "console_scripts": [
             "gwidecodeml = gwidecodeml.__main__:main",
